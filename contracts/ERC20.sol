@@ -65,6 +65,7 @@ contract ERC20 is IERC20 {
     address spender,
     uint256 value
   ) external override validAddress(spender) returns (bool) {
+    _allowances[msg.sender][spender] = 0;
     _allowances[msg.sender][spender] = value;
     emit Approval(msg.sender, spender, value);
     return true;
@@ -82,6 +83,7 @@ contract ERC20 is IERC20 {
     _allowances[from][to] -= value;
     _balances[to] += value;
 
+    emit Transfer(from, to, value);
     return true;
   }
 
