@@ -15,6 +15,28 @@ contract ERC20 is IERC20 {
     _balances[_owner] = _initialSupply;
   }
 
+  modifier onlyOwner() {
+    require(msg.sender == _owner);
+    _;
+  }
+
+  modifier validAddress(address _address) {
+    require(_address != address(0));
+    _;
+  }
+
+  function name() public pure returns (string memory) {
+    return "YarreToken";
+  }
+
+  function symbol() public pure returns (string memory) {
+    return "YAR";
+  }
+
+  function decimals() public pure returns (uint8) {
+    return 1;
+  }
+
   function balanceOf(address account) external view override returns (uint256) {
     return _balances[account];
   }
@@ -22,9 +44,8 @@ contract ERC20 is IERC20 {
   function transfer(
     address to,
     uint256 value
-  ) external override returns (bool) {
+  ) external override validAddress(to) returns (bool) {
     require(_balances[msg.sender] >= value);
-    require(to != address(0));
 
     _balances[msg.sender] -= value;
     _balances[to] += value;
@@ -43,9 +64,7 @@ contract ERC20 is IERC20 {
   function approve(
     address spender,
     uint256 value
-  ) external override returns (bool) {
-    require(spender != address(0));
-
+  ) external override validAddress(spender) returns (bool) {
     _allowances[msg.sender][spender] = value;
     emit Approval(msg.sender, spender, value);
     return true;
@@ -55,9 +74,7 @@ contract ERC20 is IERC20 {
     address from,
     address to,
     uint256 value
-  ) external override returns (bool) {
-    require(from != address(0));
-    require(to != address(0));
+  ) external override validAddress(from) validAddress(to) returns (bool) {
     require(_balances[from] >= value);
     require(_allowances[from][to] >= value);
 
@@ -72,10 +89,10 @@ contract ERC20 is IERC20 {
     return _totalSupply;
   }
 
-  function giveSomeTokens(address _to, uint _amount) public {
-    require(msg.sender == _owner);
-    require(_to != address(0));
-
+  function giveSomeTokens(
+    address _to,
+    uint _amount
+  ) public validAddress(_to) onlyOwner {
     _balances[_to] += _amount;
     _totalSupply += _amount;
     emit Transfer(_owner, _to, _amount);
