@@ -2,13 +2,14 @@
 pragma solidity 0.8.24;
 
 import "./IERC20.sol";
-import "./Ownable.sol";
-import "./Math.sol";
+import "../utils/Ownable.sol";
+import "../utils/Math.sol";
 
-abstract contract ERC20 is IERC20, Ownable {
-  uint private _totalSupply;
-  mapping(address => uint) private _balances;
-  mapping(address => mapping(address => uint)) private _allowances;
+abstract contract BaseERC20 is IERC20, Ownable {
+  uint internal _totalSupply;
+
+  mapping(address => uint) internal _balances;
+  mapping(address => mapping(address => uint)) internal _allowances;
 
   using Math for uint;
 
