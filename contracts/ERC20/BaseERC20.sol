@@ -20,7 +20,7 @@ abstract contract BaseERC20 is IERC20, Ownable {
   }
 
   modifier validAddress(address _address) {
-    require(_address != address(0));
+    require(_address != address(0), "Invalid address");
     _;
   }
 
@@ -31,8 +31,8 @@ abstract contract BaseERC20 is IERC20, Ownable {
   function transfer(
     address to,
     uint256 value
-  ) external override validAddress(to) returns (bool) {
-    require(_balances[msg.sender] >= value);
+  ) external virtual override validAddress(to) returns (bool) {
+    require(_balances[msg.sender] >= value, "Insufficient balance");
 
     (, _balances[msg.sender]) = _balances[msg.sender].trySub(value);
     (, _balances[to]) = _balances[to].tryAdd(value);
@@ -51,9 +51,10 @@ abstract contract BaseERC20 is IERC20, Ownable {
   function approve(
     address spender,
     uint256 value
-  ) external override validAddress(spender) returns (bool) {
+  ) external virtual override validAddress(spender) returns (bool) {
     _allowances[msg.sender][spender] = 0;
     _allowances[msg.sender][spender] = value;
+
     emit Approval(msg.sender, spender, value);
     return true;
   }
@@ -62,9 +63,16 @@ abstract contract BaseERC20 is IERC20, Ownable {
     address from,
     address to,
     uint256 value
-  ) external override validAddress(from) validAddress(to) returns (bool) {
-    require(_balances[from] >= value);
-    require(_allowances[from][to] >= value);
+  )
+    external
+    virtual
+    override
+    validAddress(from)
+    validAddress(to)
+    returns (bool)
+  {
+    require(_balances[from] >= value, "Insufficient balance");
+    require(_allowances[from][to] >= value, "Insufficient allowance");
 
     (, _balances[from]) = _balances[from].trySub(value);
     (, _allowances[from][to]) = _allowances[from][to].trySub(value);
@@ -81,7 +89,7 @@ abstract contract BaseERC20 is IERC20, Ownable {
   function giveSomeTokens(
     address _to,
     uint _amount
-  ) public validAddress(_to) onlyOwner {
+  ) public virtual validAddress(_to) onlyOwner {
     (, _balances[_to]) = _balances[_to].tryAdd(_amount);
     (, _totalSupply) = _totalSupply.tryAdd(_amount);
 

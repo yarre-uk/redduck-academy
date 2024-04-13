@@ -9,20 +9,30 @@ contract VotingERC20 is BaseERC20 {
   uint private _voteForNewTokenAmount = 10; // 0.1% of total supply
 
   uint public constant timeToVote = 1 days;
-
   uint public voteStartTime;
+  uint[] public votes;
+  uint public price;
 
-  constructor(uint _initialSupply) BaseERC20(_initialSupply) {
-    voteStartTime = block.timestamp;
-  }
+  constructor(uint _initialSupply) BaseERC20(_initialSupply) {}
 
   // 1% == 100
-  modifier ownsMoreThan(uint _persentage) {
-    require((_totalSupply * _persentage) / 100 < _balances[msg.sender]);
-    _;
+  function ownsMoreThan(uint _persentage) internal view returns (bool) {
+    return _balances[msg.sender] > (_totalSupply * _persentage) / 10000;
   }
 
-  function vote(uint price) public {
-    // some voting logic
+  // modifier canVote() {
+  //   require(block.timestamp < voteStartTime + timeToVote);
+  //   _;
+  // }
+
+  // modifier checkVoteEnding() {
+  //   if (voteStartTime + timeToVote < block.timestamp) {}
+  // }
+
+  function vote(uint _price) public {
+    require(
+      ownsMoreThan(_voteForExistingTokenAmount),
+      "Can't vote with such small amount of tokens"
+    );
   }
 }

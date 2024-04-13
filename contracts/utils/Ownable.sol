@@ -9,7 +9,7 @@ contract Ownable {
   }
 
   modifier onlyOwner() {
-    require(msg.sender == _owner);
+    require(msg.sender == _owner, "Ownable: caller is not the owner");
     _;
   }
 }
