@@ -2,12 +2,15 @@
 pragma solidity 0.8.24;
 
 import "./IERC20.sol";
+import "./Ownable.sol";
+import "./Math.sol";
 
-contract ERC20 is IERC20 {
-  address _owner;
+abstract contract ERC20 is IERC20, Ownable {
   uint private _totalSupply;
   mapping(address => uint) private _balances;
   mapping(address => mapping(address => uint)) private _allowances;
+
+  using Math for uint;
 
   constructor(uint _initialSupply) {
     _totalSupply = _initialSupply;
@@ -15,26 +18,9 @@ contract ERC20 is IERC20 {
     _balances[_owner] = _initialSupply;
   }
 
-  modifier onlyOwner() {
-    require(msg.sender == _owner);
-    _;
-  }
-
   modifier validAddress(address _address) {
     require(_address != address(0));
     _;
-  }
-
-  function name() public pure returns (string memory) {
-    return "YarreToken";
-  }
-
-  function symbol() public pure returns (string memory) {
-    return "YAR";
-  }
-
-  function decimals() public pure returns (uint8) {
-    return 1;
   }
 
   function balanceOf(address account) external view override returns (uint256) {
@@ -47,8 +33,8 @@ contract ERC20 is IERC20 {
   ) external override validAddress(to) returns (bool) {
     require(_balances[msg.sender] >= value);
 
-    _balances[msg.sender] -= value;
-    _balances[to] += value;
+    (, _balances[msg.sender]) = _balances[msg.sender].trySub(value);
+    (, _balances[to]) = _balances[to].tryAdd(value);
 
     emit Transfer(msg.sender, to, value);
     return true;
@@ -79,9 +65,9 @@ contract ERC20 is IERC20 {
     require(_balances[from] >= value);
     require(_allowances[from][to] >= value);
 
-    _balances[from] -= value;
-    _allowances[from][to] -= value;
-    _balances[to] += value;
+    (, _balances[from]) = _balances[from].trySub(value);
+    (, _allowances[from][to]) = _allowances[from][to].trySub(value);
+    (, _balances[to]) = _balances[to].tryAdd(value);
 
     emit Transfer(from, to, value);
     return true;
@@ -95,8 +81,15 @@ contract ERC20 is IERC20 {
     address _to,
     uint _amount
   ) public validAddress(_to) onlyOwner {
-    _balances[_to] += _amount;
-    _totalSupply += _amount;
+    (, _balances[_to]) = _balances[_to].tryAdd(_amount);
+    (, _totalSupply) = _totalSupply.tryAdd(_amount);
+
     emit Transfer(_owner, _to, _amount);
   }
+
+  function name() public pure virtual returns (string memory) {}
+
+  function symbol() public pure virtual returns (string memory) {}
+
+  function decimals() public pure virtual returns (uint8) {}
 }
