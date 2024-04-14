@@ -12,13 +12,12 @@ contract VotingERC20 is BaseERC20 {
   uint public constant timeToVote = 1 days;
   uint public voteStartTime;
   bool public isVoting = false;
+  uint public votingId;
   mapping(uint => uint) public votes;
   mapping(uint => uint) public voteKeys;
   uint public votesCount;
 
-  uint public leadingPrice;
   uint public price;
-  uint public votingId;
 
   event VotingStarted(
     address indexed _address,
@@ -28,17 +27,23 @@ contract VotingERC20 is BaseERC20 {
   event VotingEnded(uint indexed _votingId, uint _newPrice);
   event Voted(address indexed _address, uint _price);
 
-  constructor(uint _initialSupply, uint _price) BaseERC20(_initialSupply) {
+  constructor(
+    uint _initialSupply,
+    uint _price,
+    string memory _name,
+    string memory symbol,
+    uint8 decimals
+  ) BaseERC20(_initialSupply, _name, symbol, decimals) {
     price = _price;
   }
 
   // 1% == 100
   function ownsMoreThan(uint _persentage) internal view returns (bool) {
-    return _balances[msg.sender] > (_totalSupply * _persentage) / 10000;
+    return _balances[msg.sender] > (_totalSupply.mul(_persentage)).div(10000);
   }
 
   function userPersantage() public view returns (uint) {
-    return (_balances[msg.sender] * 10000) / _totalSupply;
+    return (_balances[msg.sender].mul(10000)).div(_totalSupply);
   }
 
   modifier checkVoteEnding() {
@@ -78,7 +83,7 @@ contract VotingERC20 is BaseERC20 {
         votesCount++;
       }
 
-      votes[_price] = votes[_price] + _balances[msg.sender];
+      votes[_price] = votes[_price].add(_balances[msg.sender]);
 
       if (votes[_price] > votes[_leadingPrice]) {
         _leadingPrice = _price;
@@ -92,7 +97,7 @@ contract VotingERC20 is BaseERC20 {
 
     require(votes[_price] > 0, "Price is not in voting list");
 
-    votes[_price] = votes[_price] + _balances[msg.sender];
+    votes[_price] = votes[_price].add(_balances[msg.sender]);
 
     if (votes[_price] > votes[_leadingPrice]) {
       _leadingPrice = _price;
@@ -100,4 +105,38 @@ contract VotingERC20 is BaseERC20 {
 
     emit Voted(msg.sender, _price);
   }
+
+  function transfer(
+    address _to,
+    uint256 _value
+  ) public override checkVoteEnding returns (bool) {
+    return super.transfer(_to, _value);
+  }
+
+  function approve(
+    address _spender,
+    uint _value
+  ) public override checkVoteEnding returns (bool) {
+    return super.approve(_spender, _value);
+  }
+
+  function transferFrom(
+    address _from,
+    address _to,
+    uint _value
+  ) public override checkVoteEnding returns (bool) {
+    return super.transferFrom(_from, _to, _value);
+  }
+
+  // function endVoting() public onlyOwner {
+  //   for (uint i = 0; i < votesCount; i++) {
+  //     votes[voteKeys[i]] = 0;
+  //     voteKeys[i] = 0;
+  //   }
+  //   votesCount = 0;
+
+  //   voteStartTime = block.timestamp;
+  //   isVoting = false;
+  //   emit VotingEnded(votingId, _leadingPrice);
+  // }
 }
