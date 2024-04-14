@@ -4,12 +4,9 @@ pragma solidity 0.8.24;
 import "./BaseERC20.sol";
 
 contract VotingERC20 is BaseERC20 {
-  uint private _balance = 0;
-  uint private _feeBalance = 0;
   uint private _voteForExistingTokenAmount = 5; // 0.05% of total supply
   uint private _voteForNewTokenAmount = 10; // 0.1% of total supply
   uint private _leadingPrice = 0;
-  uint private _feePercentage = 1; // 0.01%
 
   uint public constant timeToVote = 1 days;
   uint public voteStartTime;
@@ -132,34 +129,4 @@ contract VotingERC20 is BaseERC20 {
 
     emit VotingEnded(votingId, _leadingPrice);
   }
-
-  function buy() public payable {
-    require(!hasVote[msg.sender], "You have voted");
-    require(msg.value > 0, "Ether value must be greater than 0");
-    uint amount = msg.value.div(price);
-    _mint(msg.sender, amount);
-    _balance = _balance.add(msg.value);
-  }
-
-  function sell(uint amount) public {
-    require(amount > 0, "Amount must be greater than 0");
-    require(!hasVote[msg.sender], "You have voted");
-    require(_balances[msg.sender] >= amount, "Insufficient balance");
-    uint value = amount.mul(price);
-    _burn(msg.sender, amount);
-    payable(msg.sender).transfer(value);
-    _balance = _balance.sub(value);
-  }
-
-  function setFeePercentage(uint percentage) public onlyOwner {
-    require(percentage <= 100, "Percentage must be between 0 and 100");
-    _feePercentage = percentage;
-  }
-
-  // function collectAndBurnFee() public onlyOwner {
-  //   require(!isVoting, "Voting is still in progress");
-  //   uint fee = (_balance * _feePercentage) / 100;
-  //   _burn(address(this), fee);
-  //   _balance -= fee;
-  // }
 }
