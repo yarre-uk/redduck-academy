@@ -90,13 +90,23 @@ abstract contract BaseERC20 is IERC20, Ownable {
     return _totalSupply;
   }
 
-  function giveSomeTokens(
-    address _to,
-    uint _amount
-  ) public virtual validAddress(_to) onlyOwner {
-    _balances[_to] = _balances[_to].add(_amount);
+  function _mint(
+    address _address,
+    uint256 _amount
+  ) internal validAddress(_address) {
     _totalSupply = _totalSupply.add(_amount);
+    _balances[_address] = _balances[_address].add(_amount);
 
-    emit Transfer(_owner, _to, _amount);
+    emit Transfer(address(0), _address, _amount);
+  }
+
+  function _burn(
+    address _address,
+    uint256 _amount
+  ) internal validAddress(_address) {
+    _balances[_address] = _balances[_address].sub(_amount);
+    _totalSupply = _totalSupply.sub(_amount);
+
+    emit Transfer(address(0), _address, _amount);
   }
 }

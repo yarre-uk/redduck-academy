@@ -5,9 +5,11 @@ import "./BaseERC20.sol";
 
 contract VotingERC20 is BaseERC20 {
   uint private _balance = 0;
+  uint private _feeBalance = 0;
   uint private _voteForExistingTokenAmount = 5; // 0.05% of total supply
   uint private _voteForNewTokenAmount = 10; // 0.1% of total supply
   uint private _leadingPrice = 0;
+  uint private _feePercentage = 1; // 0.01%
 
   uint public constant timeToVote = 1 days;
   uint public voteStartTime;
@@ -27,14 +29,16 @@ contract VotingERC20 is BaseERC20 {
   event VotingEnded(uint indexed _votingId, uint _newPrice);
   event Voted(address indexed _address, uint _price);
 
+  using SafeMath for uint;
+
   constructor(
     uint _initialSupply,
-    uint _price,
+    uint _initialPrice,
     string memory _name,
     string memory symbol,
     uint8 decimals
   ) BaseERC20(_initialSupply, _name, symbol, decimals) {
-    price = _price;
+    price = _initialPrice;
   }
 
   // 1% == 100
@@ -44,21 +48,6 @@ contract VotingERC20 is BaseERC20 {
 
   function userPersantage() public view returns (uint) {
     return (_balances[msg.sender].mul(10000)).div(_totalSupply);
-  }
-
-  modifier checkVoteEnding() {
-    if (voteStartTime + timeToVote < block.timestamp) {
-      for (uint i = 0; i < votesCount; i++) {
-        votes[voteKeys[i]] = 0;
-        voteKeys[i] = 0;
-      }
-      votesCount = 0;
-
-      voteStartTime = block.timestamp;
-      isVoting = false;
-      emit VotingEnded(votingId, _leadingPrice);
-    }
-    _;
   }
 
   function vote(uint _price) public {
@@ -106,37 +95,53 @@ contract VotingERC20 is BaseERC20 {
     emit Voted(msg.sender, _price);
   }
 
-  function transfer(
-    address _to,
-    uint256 _value
-  ) public override checkVoteEnding returns (bool) {
-    return super.transfer(_to, _value);
+  function endVoting() public {
+    require(!isVoting, "Voting is still in progress");
+    require(
+      block.timestamp >= voteStartTime + timeToVote,
+      "Voting time is not over"
+    );
+
+    for (uint i = 0; i < votesCount; i++) {
+      votes[voteKeys[i]] = 0;
+      voteKeys[i] = 0;
+    }
+    votesCount = 0;
+    voteStartTime = block.timestamp;
+    isVoting = false;
+
+    emit VotingEnded(votingId, _leadingPrice);
   }
 
-  function approve(
-    address _spender,
-    uint _value
-  ) public override checkVoteEnding returns (bool) {
-    return super.approve(_spender, _value);
-  }
+  // function buy() public payable {
+  //   require(!isVoting, "Voting is still in progress");
+  //   require(msg.value > 0, "Ether value must be greater than 0");
+  //   uint fee = (msg.value * _feePercentage) / 100;
+  //   uint amount = (msg.value - fee) / price;
+  //   _mint(msg.sender, amount);
+  //   _balance += msg.value - fee;
+  // }
 
-  function transferFrom(
-    address _from,
-    address _to,
-    uint _value
-  ) public override checkVoteEnding returns (bool) {
-    return super.transferFrom(_from, _to, _value);
-  }
+  // function sell(uint amount) public {
+  //   require(!isVoting, "Voting is still in progress");
+  //   require(amount > 0, "Amount must be greater than 0");
+  //   require(_balances[msg.sender] >= amount, "Insufficient balance");
+  //   uint fee = (amount * _feePercentage) / 100;
+  //   uint value = (amount * price) - fee;
+  //   _burn(msg.sender, amount);
+  //   payable(msg.sender).transfer(value);
+  //   _balance -= value;
+  // }
 
-  // function endVoting() public onlyOwner {
-  //   for (uint i = 0; i < votesCount; i++) {
-  //     votes[voteKeys[i]] = 0;
-  //     voteKeys[i] = 0;
-  //   }
-  //   votesCount = 0;
+  // function setFeePercentage(uint percentage) public onlyOwner {
+  //   require(percentage <= 100, "Percentage must be between 0 and 100");
+  //   _feePercentage = percentage;
+  // }
 
-  //   voteStartTime = block.timestamp;
-  //   isVoting = false;
-  //   emit VotingEnded(votingId, _leadingPrice);
+  // function collectAndBurnFee() public onlyOwner {
+  //   require(!isVoting, "Voting is still in progress");
+  //   uint fee = (_balance * _feePercentage) / 100;
+  //   _burn(address(this), fee);
+  //   _balance -= fee;
   // }
 }
