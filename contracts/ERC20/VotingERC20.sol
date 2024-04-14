@@ -15,9 +15,14 @@ contract VotingERC20 is BaseERC20 {
   uint public voteStartTime;
   bool public isVoting = false;
   uint public votingId;
+
   mapping(uint => uint) public votes;
   mapping(uint => uint) public voteKeys;
   uint public votesCount;
+
+  mapping(address => bool) public hasVote;
+  mapping(uint => address) public hasVoteKeys;
+  uint public hasVotesCount;
 
   uint public price;
 
@@ -55,11 +60,12 @@ contract VotingERC20 is BaseERC20 {
       ownsMoreThan(_voteForExistingTokenAmount),
       "Can't vote with such small amount of tokens"
     );
+    require(_price > 0, "Price can't be 0");
+    require(!hasVote[msg.sender], "You have already voted");
 
-    // premium vote
+    // Premium voting
     if (userPersantage() > _voteForNewTokenAmount) {
-      require(_price > 0, "Price can't be 0");
-
+      // Start voting if it's not started
       if (!isVoting) {
         isVoting = true;
         voteStartTime = block.timestamp;
@@ -67,12 +73,17 @@ contract VotingERC20 is BaseERC20 {
         emit VotingStarted(msg.sender, votingId, price);
       }
 
+      // Add new price to voting list
       if (votes[_price] == 0) {
+        votes[_price] = _balances[msg.sender];
         voteKeys[votesCount] = _price;
         votesCount++;
       }
 
       votes[_price] = votes[_price].add(_balances[msg.sender]);
+      hasVote[msg.sender] = true;
+      hasVoteKeys[hasVotesCount] = msg.sender;
+      hasVotesCount++;
 
       if (votes[_price] > votes[_leadingPrice]) {
         _leadingPrice = _price;
@@ -83,10 +94,12 @@ contract VotingERC20 is BaseERC20 {
     }
 
     require(isVoting, "Voting is not started");
-
     require(votes[_price] > 0, "Price is not in voting list");
 
     votes[_price] = votes[_price].add(_balances[msg.sender]);
+    hasVote[msg.sender] = true;
+    hasVoteKeys[hasVotesCount] = msg.sender;
+    hasVotesCount++;
 
     if (votes[_price] > votes[_leadingPrice]) {
       _leadingPrice = _price;
@@ -103,40 +116,45 @@ contract VotingERC20 is BaseERC20 {
     );
 
     for (uint i = 0; i < votesCount; i++) {
-      votes[voteKeys[i]] = 0;
-      voteKeys[i] = 0;
+      delete votes[voteKeys[i]];
+      delete voteKeys[i];
     }
     votesCount = 0;
+
+    for (uint i = votesCount; i < hasVotesCount; i++) {
+      hasVote[hasVoteKeys[i]] = false;
+      delete hasVoteKeys[i];
+    }
+    hasVotesCount = 0;
+
     voteStartTime = block.timestamp;
     isVoting = false;
 
     emit VotingEnded(votingId, _leadingPrice);
   }
 
-  // function buy() public payable {
-  //   require(!isVoting, "Voting is still in progress");
-  //   require(msg.value > 0, "Ether value must be greater than 0");
-  //   uint fee = (msg.value * _feePercentage) / 100;
-  //   uint amount = (msg.value - fee) / price;
-  //   _mint(msg.sender, amount);
-  //   _balance += msg.value - fee;
-  // }
+  function buy() public payable {
+    require(!hasVote[msg.sender], "You have voted");
+    require(msg.value > 0, "Ether value must be greater than 0");
+    uint amount = msg.value.div(price);
+    _mint(msg.sender, amount);
+    _balance = _balance.add(msg.value);
+  }
 
-  // function sell(uint amount) public {
-  //   require(!isVoting, "Voting is still in progress");
-  //   require(amount > 0, "Amount must be greater than 0");
-  //   require(_balances[msg.sender] >= amount, "Insufficient balance");
-  //   uint fee = (amount * _feePercentage) / 100;
-  //   uint value = (amount * price) - fee;
-  //   _burn(msg.sender, amount);
-  //   payable(msg.sender).transfer(value);
-  //   _balance -= value;
-  // }
+  function sell(uint amount) public {
+    require(amount > 0, "Amount must be greater than 0");
+    require(!hasVote[msg.sender], "You have voted");
+    require(_balances[msg.sender] >= amount, "Insufficient balance");
+    uint value = amount.mul(price);
+    _burn(msg.sender, amount);
+    payable(msg.sender).transfer(value);
+    _balance = _balance.sub(value);
+  }
 
-  // function setFeePercentage(uint percentage) public onlyOwner {
-  //   require(percentage <= 100, "Percentage must be between 0 and 100");
-  //   _feePercentage = percentage;
-  // }
+  function setFeePercentage(uint percentage) public onlyOwner {
+    require(percentage <= 100, "Percentage must be between 0 and 100");
+    _feePercentage = percentage;
+  }
 
   // function collectAndBurnFee() public onlyOwner {
   //   require(!isVoting, "Voting is still in progress");
