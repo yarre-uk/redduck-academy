@@ -14,6 +14,7 @@ abstract contract BaseERC20 is IERC20, Ownable {
   string public symbol;
   uint8 public decimals;
 
+  // why do i have to write it in every contract?
   using SafeMath for uint;
 
   constructor(
