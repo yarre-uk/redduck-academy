@@ -110,4 +110,9 @@ abstract contract BaseERC20 is IERC20, Ownable {
 
     emit Transfer(address(0), _address, _amount);
   }
+
+  // diff between revert and require?
+  fallback() external {
+    revert("Invalid function call");
+  }
 }

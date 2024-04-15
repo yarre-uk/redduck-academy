@@ -68,4 +68,30 @@ contract BuyableERC20 is VotingERC20 {
   function collectAndBurnFee() public onlyOwner {
     _feeBalance = 0;
   }
+
+  receive() external payable {
+    _balance = _balance.add(msg.value);
+  }
+
+  function getBalance() external view onlyOwner returns (uint) {
+    return _balance;
+  }
+
+  function getFeeBalance() external view onlyOwner returns (uint) {
+    return _feeBalance;
+  }
+
+  function getFeePercentage() external view onlyOwner returns (uint) {
+    return _feePercentage;
+  }
+
+  function withdrawBalanceAmount(uint _value) external onlyOwner {
+    payable(_owner).transfer(_value);
+    _balance = _balance.sub(_value);
+  }
+
+  function withdrawBalance() external onlyOwner {
+    payable(_owner).transfer(_balance);
+    _balance = 0;
+  }
 }

@@ -14,6 +14,7 @@ contract VotingERC20 is BaseERC20 {
   uint public votingId;
 
   // price => amount of tokens
+  // is it better to make it internal?
   mapping(uint => uint) public votes;
   mapping(uint => uint) public voteKeys;
   uint public votesCount;
@@ -116,7 +117,7 @@ contract VotingERC20 is BaseERC20 {
       "Voting time is not over"
     );
 
-    // it may be optimized to clear two at a time
+    // may it be optimized to clear two at a time?
     for (uint i = 0; i < votesCount; i++) {
       delete votes[voteKeys[i]];
       delete voteKeys[i];
