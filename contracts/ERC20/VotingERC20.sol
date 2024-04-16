@@ -34,8 +34,6 @@ contract VotingERC20 is BaseERC20 {
   event VotingEnded(uint indexed _votingId, uint _newPrice);
   event Voted(address indexed _address, uint _price);
 
-  using SafeMath for uint;
-
   constructor(
     uint _initialSupply,
     uint _initialPrice,
@@ -48,11 +46,11 @@ contract VotingERC20 is BaseERC20 {
 
   // 1% == 100
   function ownsMoreThan(uint _persentage) internal view returns (bool) {
-    return _balances[msg.sender] > (_totalSupply.mul(_persentage)).div(10000);
+    return _balances[msg.sender] > (_totalSupply * _persentage) / 10000;
   }
 
   function userPersantage() public view returns (uint) {
-    return (_balances[msg.sender].mul(10000)).div(_totalSupply);
+    return (_balances[msg.sender] * 10000) / _totalSupply;
   }
 
   function vote(uint _price) public {
@@ -76,7 +74,7 @@ contract VotingERC20 is BaseERC20 {
         votesCount++;
       }
 
-      votes[_price] = votes[_price].add(_balances[msg.sender]);
+      votes[_price] += _balances[msg.sender];
       hasVoted[msg.sender] = true;
       hasVotedKeys[hasVotedCount] = msg.sender;
       hasVotedCount++;
@@ -92,7 +90,7 @@ contract VotingERC20 is BaseERC20 {
     require(isVoting, "Voting is not started");
     require(votes[_price] > 0, "Price is not in voting list");
 
-    votes[_price] = votes[_price].add(_balances[msg.sender]);
+    votes[_price] += _balances[msg.sender];
     hasVoted[msg.sender] = true;
     hasVotedKeys[hasVotedCount] = msg.sender;
     hasVotedCount++;
@@ -131,7 +129,7 @@ contract VotingERC20 is BaseERC20 {
     hasVotedCount = 0;
 
     isVoting = false;
-
+    price = _leadingPrice;
     emit VotingEnded(votingId, _leadingPrice);
   }
 }

@@ -14,9 +14,6 @@ abstract contract BaseERC20 is IERC20, Ownable {
   string public symbol;
   uint8 public decimals;
 
-  // why do i have to write it in every contract?
-  using SafeMath for uint;
-
   constructor(
     uint _initialSupply,
     string memory _name,
@@ -46,8 +43,8 @@ abstract contract BaseERC20 is IERC20, Ownable {
   ) public virtual override validAddress(to) returns (bool) {
     require(_balances[msg.sender] >= value, "Insufficient balance");
 
-    _balances[msg.sender] = _balances[msg.sender].sub(value);
-    _balances[to] = _balances[to].add(value);
+    _balances[msg.sender] = _balances[msg.sender] - value;
+    _balances[to] = _balances[to] + value;
 
     emit Transfer(msg.sender, to, value);
     return true;
@@ -79,9 +76,9 @@ abstract contract BaseERC20 is IERC20, Ownable {
     require(_balances[from] >= value, "Insufficient balance");
     require(_allowances[from][to] >= value, "Insufficient allowance");
 
-    _balances[from] = _balances[from].sub(value);
-    _allowances[from][to] = _allowances[from][to].sub(value);
-    _balances[to] = _balances[to].add(value);
+    _balances[from] = _balances[from] - value;
+    _allowances[from][to] = _allowances[from][to] - value;
+    _balances[to] = _balances[to] + value;
 
     emit Transfer(from, to, value);
     return true;
@@ -95,8 +92,8 @@ abstract contract BaseERC20 is IERC20, Ownable {
     address _address,
     uint256 _amount
   ) internal validAddress(_address) {
-    _totalSupply = _totalSupply.add(_amount);
-    _balances[_address] = _balances[_address].add(_amount);
+    _totalSupply = _totalSupply + _amount;
+    _balances[_address] = _balances[_address] + _amount;
 
     emit Transfer(address(0), _address, _amount);
   }
@@ -105,8 +102,8 @@ abstract contract BaseERC20 is IERC20, Ownable {
     address _address,
     uint256 _amount
   ) internal validAddress(_address) {
-    _balances[_address] = _balances[_address].sub(_amount);
-    _totalSupply = _totalSupply.sub(_amount);
+    _balances[_address] = _balances[_address] - _amount;
+    _totalSupply = _totalSupply - _amount;
 
     emit Transfer(address(0), _address, _amount);
   }
