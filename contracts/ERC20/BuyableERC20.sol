@@ -3,10 +3,13 @@ pragma solidity 0.8.24;
 
 import "./VotingERC20.sol";
 
+import "hardhat/console.sol";
+
 contract BuyableERC20 is VotingERC20 {
   uint private _balance = 0;
   uint private _feeBalance = 0;
-  uint private _feePercentage = 1; // 0.01%
+
+  uint public feePercentage = 1; // 0.01%
 
   using SafeMath for uint;
 
@@ -30,8 +33,8 @@ contract BuyableERC20 is VotingERC20 {
   function buy() public payable haveNotVoted {
     require(msg.value > 0, "Ether value must be greater than 0");
 
-    uint amount = msg.value.div(price);
-    uint fee = (amount.mul(_feePercentage)).div(10000);
+    uint amount = msg.value.mul(price);
+    uint fee = (amount.mul(feePercentage)).div(10000);
 
     _mint(msg.sender, amount.sub(fee));
     _balance = _balance.add(msg.value);
@@ -40,14 +43,15 @@ contract BuyableERC20 is VotingERC20 {
 
   function sell(uint _amount) public haveNotVoted {
     require(_amount > 0, "Amount must be greater than 0");
-    require(_balances[msg.sender] >= _amount, "Insufficient balance");
+    require(_amount <= _balances[msg.sender], "Insufficient balance");
 
-    uint value = _amount.mul(price);
-    uint fee = (value.mul(_feePercentage)).div(10000);
+    uint fee = (_amount.mul(feePercentage)).div(10000);
+    uint value = (_amount.sub(fee)).div(price);
 
-    _burn(msg.sender, _amount.sub(fee));
-    payable(msg.sender).transfer(value);
+    _burn(msg.sender, _amount);
+
     _balance = _balance.sub(value);
+    payable(msg.sender).transfer(value);
     _feeBalance = _feeBalance.add(fee);
   }
 
@@ -62,7 +66,7 @@ contract BuyableERC20 is VotingERC20 {
 
   function setFeePercentage(uint percentage) public onlyOwner {
     require(percentage <= 10000, "Percentage must be between 0 and 10000");
-    _feePercentage = percentage;
+    feePercentage = percentage;
   }
 
   function collectAndBurnFee() public onlyOwner {
@@ -73,24 +77,20 @@ contract BuyableERC20 is VotingERC20 {
     _balance = _balance.add(msg.value);
   }
 
-  function getBalance() external view onlyOwner returns (uint) {
+  function getBalance() public view onlyOwner returns (uint) {
     return _balance;
   }
 
-  function getFeeBalance() external view onlyOwner returns (uint) {
+  function getFeeBalance() public view onlyOwner returns (uint) {
     return _feeBalance;
   }
 
-  function getFeePercentage() external view onlyOwner returns (uint) {
-    return _feePercentage;
-  }
-
-  function withdrawBalanceAmount(uint _value) external onlyOwner {
+  function withdrawBalanceAmount(uint _value) public onlyOwner {
     payable(_owner).transfer(_value);
     _balance = _balance.sub(_value);
   }
 
-  function withdrawBalance() external onlyOwner {
+  function withdrawBalance() public onlyOwner {
     payable(_owner).transfer(_balance);
     _balance = 0;
   }
