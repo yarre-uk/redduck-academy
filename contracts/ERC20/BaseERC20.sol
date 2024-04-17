@@ -39,7 +39,7 @@ abstract contract BaseERC20 is IERC20, Ownable {
   function transfer(
     address to,
     uint256 value
-  ) public virtual override validAddress(to) returns (bool) {
+  ) public virtual validAddress(to) returns (bool) {
     require(_balances[msg.sender] >= value, "Insufficient balance");
 
     _balances[msg.sender] = _balances[msg.sender] - value;
@@ -59,7 +59,7 @@ abstract contract BaseERC20 is IERC20, Ownable {
   function approve(
     address spender,
     uint256 value
-  ) public virtual override validAddress(spender) returns (bool) {
+  ) public virtual validAddress(spender) returns (bool) {
     _allowances[msg.sender][spender] = 0;
     _allowances[msg.sender][spender] = value;
 
@@ -107,7 +107,6 @@ abstract contract BaseERC20 is IERC20, Ownable {
     emit Transfer(address(0), _address, _amount);
   }
 
-  // diff between revert and require?
   fallback() external {
     revert("Invalid function call");
   }

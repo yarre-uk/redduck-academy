@@ -101,6 +101,27 @@ describe("YarreToken", async () => {
         ethers.parseEther("10000")
       );
     });
+
+    it("Should not sell more tokens than user has", async () => {
+      const { yarreToken, account1, initialPrice } = await loadFixture(deploy);
+
+      const amount = ethers.parseEther("10");
+      const signer1 = yarreToken.connect(account1);
+      await signer1.buy({ value: amount });
+
+      const feePercentage = await signer1.feePercentage(); // 1 -> 0.01%
+      let expectedBalance = amount * initialPrice;
+      const fee = (expectedBalance * feePercentage) / BigInt(10000);
+      expectedBalance -= fee;
+
+      expect(await signer1.balanceOf(account1.address)).to.equal(
+        expectedBalance
+      );
+
+      await expect(signer1.sell(expectedBalance + 1n)).to.be.rejectedWith(
+        "Insufficient balance"
+      );
+    });
   });
 
   describe("Transfer and withdraw", async () => {
@@ -391,6 +412,66 @@ describe("YarreToken", async () => {
         await signer1.stopVoting();
 
         expect(await signer1.price()).to.be.equal(500);
+      });
+    });
+
+    describe("Blocking actions when voted", async () => {
+      it("Should not be able to buy when voted", async () => {
+        const { yarreToken, account1, premiumVoteAmount } = await loadFixture(
+          deploy
+        );
+
+        const signer1 = yarreToken.connect(account1);
+        await signer1.buy({ value: premiumVoteAmount });
+        await signer1.vote(500);
+
+        await expect(
+          signer1.buy({ value: premiumVoteAmount })
+        ).to.be.rejectedWith(
+          "You have voted, cannot buy or sell, transfer or approve"
+        );
+      });
+
+      it("Should not be able to sell when voted", async () => {
+        const { yarreToken, account1, premiumVoteAmount } = await loadFixture(
+          deploy
+        );
+
+        const signer1 = yarreToken.connect(account1);
+        await signer1.buy({ value: premiumVoteAmount });
+        await signer1.vote(500);
+
+        await expect(signer1.sell(premiumVoteAmount)).to.be.rejectedWith(
+          "You have voted, cannot buy or sell, transfer or approve"
+        );
+      });
+
+      it("Should not be able to transfer when voted", async () => {
+        const { yarreToken, owner, account1, premiumVoteAmount } =
+          await loadFixture(deploy);
+
+        const signer1 = yarreToken.connect(account1);
+        await signer1.buy({ value: premiumVoteAmount });
+        await signer1.vote(500);
+
+        await expect(signer1.transfer(owner.address, 1)).to.be.rejectedWith(
+          "You have voted, cannot buy or sell, transfer or approve"
+        );
+      });
+
+      it("Should not be able to approve when voted", async () => {
+        const { yarreToken, owner, account1, premiumVoteAmount } =
+          await loadFixture(deploy);
+
+        const signer1 = yarreToken.connect(account1);
+        await signer1.buy({ value: premiumVoteAmount });
+        await signer1.vote(500);
+
+        await expect(
+          signer1.approve(owner.address, premiumVoteAmount)
+        ).to.be.rejectedWith(
+          "You have voted, cannot buy or sell, transfer or approve"
+        );
       });
     });
   });

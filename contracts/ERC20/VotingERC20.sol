@@ -70,7 +70,7 @@ contract VotingERC20 is BaseERC20 {
     price = _leadingPrice;
     voteStartTime = 0;
     votingId++;
-    emit VotingEnded(votingId, _leadingPrice);
+    emit VotingEnded(votingId, price);
   }
 
   function vote(uint _price) public {
