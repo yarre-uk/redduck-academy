@@ -12,7 +12,7 @@ describe("YarreToken", async () => {
     const initialPrice = 1000n; // 1 ether = 1000 tokens
     const baseVoteAmount = ethers.parseEther("0.01");
     const premiumVoteAmount = ethers.parseEther("0.1");
-    const votingTime = 60 * 60 * 24 + 60 * 60; // 25 hours
+    const votingTime = 60 * 60 + 60 * 60 * 24; // 25 hours
 
     const yarreToken = await new YarreToken__factory(owner).deploy(
       initialSupply,
@@ -308,7 +308,7 @@ describe("YarreToken", async () => {
 
         await signer1.vote(500);
         await signer2.vote(1500);
-        time.increase(votingTime);
+        await time.increase(votingTime);
         await yarreToken.stopVoting();
         expect(await yarreToken.price()).to.be.equal(1500);
 
@@ -316,7 +316,7 @@ describe("YarreToken", async () => {
 
         await signer1.vote(2000);
         await signer2.vote(500);
-        time.increase(votingTime);
+        await time.increase(votingTime);
         await yarreToken.stopVoting();
         expect(await yarreToken.price()).to.be.equal(2000);
       });
