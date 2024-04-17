@@ -24,12 +24,13 @@ contract BuyableERC20 is VotingERC20 {
     _;
   }
 
-  // what if you send ether on now payable function?
   function buy() public payable haveNotVoted {
     require(msg.value > 0, "Ether value must be greater than 0");
 
     uint amount = msg.value * price;
     uint fee = (amount * feePercentage) / 10000;
+
+    require(amount - fee > 0, "You can't buy such a small amount of tokens");
 
     _mint(msg.sender, amount - fee);
     _mint(address(this), fee);

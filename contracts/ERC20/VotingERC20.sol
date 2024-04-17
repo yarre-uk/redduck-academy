@@ -36,7 +36,6 @@ contract VotingERC20 is BaseERC20 {
     price = _initialPrice;
   }
 
-  // 1% == 100
   function _ownsMoreThan(uint _percentage) internal view returns (bool) {
     return _balances[msg.sender] > (_totalSupply * _percentage) / 10000;
   }
@@ -47,6 +46,7 @@ contract VotingERC20 is BaseERC20 {
     emit VotingStarted(msg.sender, votingId, price);
   }
 
+  // what if there are multiple prices with the same amount of votes?
   function _updatePrice(uint _price) internal {
     if (votes[votingId][_price] > votes[votingId][_leadingPrice]) {
       _leadingPrice = _price;
@@ -57,14 +57,16 @@ contract VotingERC20 is BaseERC20 {
     return (_balances[msg.sender] * 10000) / _totalSupply;
   }
 
-  function endVoting() public {
+  function stopVoting() public {
+    require(isVoting, "Voting is not started");
     require(
       block.timestamp >= voteStartTime + timeToVote,
-      "Voting time is not over"
+      "Voting time hasn't passed"
     );
 
     isVoting = false;
     price = _leadingPrice;
+    voteStartTime = 0;
     votingId++;
     emit VotingEnded(votingId, _leadingPrice);
   }
@@ -75,11 +77,9 @@ contract VotingERC20 is BaseERC20 {
       "Can't vote with such small amount of tokens"
     );
     require(_price > 0, "Price can't be 0");
-    require(!hasVoted[votingId][msg.sender], "You have already voted");
+    require(!hasVoted[votingId][msg.sender], "User has already voted");
 
-    // Premium voting
     if (userPercentage() > _voteForNewTokenAmount) {
-      // Start voting if it's not started
       if (!isVoting) {
         _startVoting();
       }
@@ -87,16 +87,14 @@ contract VotingERC20 is BaseERC20 {
       votes[votingId][_price] += _balances[msg.sender];
       hasVoted[votingId][msg.sender] = true;
 
-      if (votes[votingId][_price] > votes[votingId][_leadingPrice]) {
-        _leadingPrice = _price;
-      }
+      _updatePrice(_price);
 
       emit Voted(msg.sender, _price);
       return;
     }
 
     require(isVoting, "Voting is not started");
-    require(votes[votingId][_price] > 0, "Price is not in voting list");
+    require(votes[votingId][_price] > 0, "Price is not in the voting list");
 
     votes[votingId][_price] += _balances[msg.sender];
     hasVoted[votingId][msg.sender] = true;
