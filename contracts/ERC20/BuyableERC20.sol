@@ -3,11 +3,8 @@ pragma solidity 0.8.24;
 
 import "./VotingERC20.sol";
 
-import "hardhat/console.sol";
-
 contract BuyableERC20 is VotingERC20 {
   uint private _balance = 0;
-  uint private _feeBalance = 0;
 
   uint public feePercentage = 1; // 0.01%
 
@@ -21,7 +18,7 @@ contract BuyableERC20 is VotingERC20 {
 
   modifier haveNotVoted() {
     require(
-      !hasVoted[msg.sender],
+      !hasVoted[votingId][msg.sender],
       "You have voted, can't buy or sell or transfer"
     );
     _;
@@ -35,8 +32,9 @@ contract BuyableERC20 is VotingERC20 {
     uint fee = (amount * feePercentage) / 10000;
 
     _mint(msg.sender, amount - fee);
+    _mint(address(this), fee);
     _balance += msg.value;
-    _feeBalance += fee;
+    _balances[address(this)] += fee;
   }
 
   function sell(uint _amount) public haveNotVoted {
@@ -46,11 +44,12 @@ contract BuyableERC20 is VotingERC20 {
     uint fee = (_amount * feePercentage) / 10000;
     uint value = (_amount - fee) / price;
 
-    _burn(msg.sender, _amount); // here fee, and send fee to contract
+    _burn(msg.sender, _amount);
 
     _balance -= value;
     payable(msg.sender).transfer(value);
-    _feeBalance += fee;
+    _mint(address(this), fee);
+    _balances[address(this)] += fee;
   }
 
   function transfer(
@@ -66,7 +65,7 @@ contract BuyableERC20 is VotingERC20 {
   }
 
   function collectAndBurnFee() public onlyOwner {
-    _feeBalance = 0; // fix
+    _burn(address(this), _balances[address(this)]);
   }
 
   receive() external payable {
@@ -78,7 +77,7 @@ contract BuyableERC20 is VotingERC20 {
   }
 
   function getFeeBalance() public view onlyOwner returns (uint) {
-    return _feeBalance;
+    return _balances[address(this)];
   }
 
   function withdrawBalanceAmount(uint _value) public onlyOwner {

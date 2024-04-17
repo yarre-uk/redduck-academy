@@ -13,16 +13,8 @@ contract VotingERC20 is BaseERC20 {
   bool public isVoting = false;
   uint public votingId;
 
-  // price => amount of tokens
-  // is it better to make it internal?
-  mapping(uint => uint) public votes;
-  mapping(uint => uint) public voteKeys;
-  uint public votesCount;
-
-  // address => voted
-  mapping(address => bool) public hasVoted;
-  mapping(uint => address) public hasVotedKeys;
-  uint public hasVotedCount;
+  mapping(uint => mapping(uint => uint)) public votes;
+  mapping(uint => mapping(address => bool)) public hasVoted;
 
   uint public price;
 
@@ -45,68 +37,24 @@ contract VotingERC20 is BaseERC20 {
   }
 
   // 1% == 100
-  function ownsMoreThan(uint _persentage) internal view returns (bool) {
-    return _balances[msg.sender] > (_totalSupply * _persentage) / 10000;
+  function _ownsMoreThan(uint _percentage) internal view returns (bool) {
+    return _balances[msg.sender] > (_totalSupply * _percentage) / 10000;
   }
 
-  function userPersantage() public view returns (uint) {
-    return (_balances[msg.sender] * 10000) / _totalSupply;
-  }
-
-  function vote(uint _price) public {
-    require(
-      ownsMoreThan(_voteForExistingTokenAmount),
-      "Can't vote with such small amount of tokens"
-    );
-    require(_price > 0, "Price can't be 0");
-    require(!hasVoted[msg.sender], "You have already voted");
-
-    // Premium voting
-    if (userPersantage() > _voteForNewTokenAmount) {
-      // Start voting if it's not started
-      if (!isVoting) {
-        startVoting();
-      }
-
-      // Add new price to voting list
-      if (votes[_price] == 0) {
-        voteKeys[votesCount] = _price;
-        votesCount++;
-      }
-
-      votes[_price] += _balances[msg.sender];
-      hasVoted[msg.sender] = true;
-      hasVotedKeys[hasVotedCount] = msg.sender;
-      hasVotedCount++;
-
-      if (votes[_price] > votes[_leadingPrice]) {
-        _leadingPrice = _price;
-      }
-
-      emit Voted(msg.sender, _price);
-      return;
-    }
-
-    require(isVoting, "Voting is not started");
-    require(votes[_price] > 0, "Price is not in voting list");
-
-    votes[_price] += _balances[msg.sender];
-    hasVoted[msg.sender] = true;
-    hasVotedKeys[hasVotedCount] = msg.sender;
-    hasVotedCount++;
-
-    if (votes[_price] > votes[_leadingPrice]) {
-      _leadingPrice = _price;
-    }
-
-    emit Voted(msg.sender, _price);
-  }
-
-  function startVoting() public {
+  function _startVoting() internal {
     isVoting = true;
     voteStartTime = block.timestamp;
-    votingId++;
     emit VotingStarted(msg.sender, votingId, price);
+  }
+
+  function _updatePrice(uint _price) internal {
+    if (votes[votingId][_price] > votes[votingId][_leadingPrice]) {
+      _leadingPrice = _price;
+    }
+  }
+
+  function userPercentage() public view returns (uint) {
+    return (_balances[msg.sender] * 10000) / _totalSupply;
   }
 
   function endVoting() public {
@@ -115,21 +63,46 @@ contract VotingERC20 is BaseERC20 {
       "Voting time is not over"
     );
 
-    // may it be optimized to clear two at a time?
-    for (uint i = 0; i < votesCount; i++) {
-      delete votes[voteKeys[i]];
-      delete voteKeys[i];
-    }
-    votesCount = 0;
-
-    for (uint i = votesCount; i < hasVotedCount; i++) {
-      hasVoted[hasVotedKeys[i]] = false;
-      delete hasVotedKeys[i];
-    }
-    hasVotedCount = 0;
-
     isVoting = false;
     price = _leadingPrice;
+    votingId++;
     emit VotingEnded(votingId, _leadingPrice);
+  }
+
+  function vote(uint _price) public {
+    require(
+      _ownsMoreThan(_voteForExistingTokenAmount),
+      "Can't vote with such small amount of tokens"
+    );
+    require(_price > 0, "Price can't be 0");
+    require(!hasVoted[votingId][msg.sender], "You have already voted");
+
+    // Premium voting
+    if (userPercentage() > _voteForNewTokenAmount) {
+      // Start voting if it's not started
+      if (!isVoting) {
+        _startVoting();
+      }
+
+      votes[votingId][_price] += _balances[msg.sender];
+      hasVoted[votingId][msg.sender] = true;
+
+      if (votes[votingId][_price] > votes[votingId][_leadingPrice]) {
+        _leadingPrice = _price;
+      }
+
+      emit Voted(msg.sender, _price);
+      return;
+    }
+
+    require(isVoting, "Voting is not started");
+    require(votes[votingId][_price] > 0, "Price is not in voting list");
+
+    votes[votingId][_price] += _balances[msg.sender];
+    hasVoted[votingId][msg.sender] = true;
+
+    _updatePrice(_price);
+
+    emit Voted(msg.sender, _price);
   }
 }

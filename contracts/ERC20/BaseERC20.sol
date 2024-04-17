@@ -3,7 +3,6 @@ pragma solidity 0.8.24;
 
 import "./IERC20.sol";
 import "../utils/Ownable.sol";
-import "../utils/SafeMath.sol";
 
 abstract contract BaseERC20 is IERC20, Ownable {
   uint internal _totalSupply;

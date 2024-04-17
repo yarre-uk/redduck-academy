@@ -151,7 +151,7 @@ describe("YarreToken", async () => {
       const firstSigner = yarToken.connect(firstAcc);
       firstSigner.buy({ value: amount });
 
-      console.log(await firstSigner.userPersantage());
+      console.log(await firstSigner.userPersentage());
     });
   });
 
