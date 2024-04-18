@@ -35,7 +35,6 @@ contract BuyableERC20 is VotingERC20 {
     _mint(msg.sender, amount - fee);
     _mint(address(this), fee);
     _balance += msg.value;
-    _balances[address(this)] += fee;
   }
 
   function sell(uint _amount) public haveNotVoted {
@@ -45,12 +44,11 @@ contract BuyableERC20 is VotingERC20 {
     uint fee = (_amount * feePercentage) / 10000;
     uint value = (_amount - fee) / price;
 
-    _burn(msg.sender, _amount);
+    transferFrom(msg.sender, address(this), _amount);
+    _burn(address(this), _amount - fee);
 
     _balance -= value;
     payable(msg.sender).transfer(value);
-    _mint(address(this), fee);
-    _balances[address(this)] += fee;
   }
 
   function transfer(

@@ -93,6 +93,7 @@ describe("YarreToken", async () => {
         expectedBalance
       );
 
+      await signer1.approve(yarreToken.getAddress(), expectedBalance);
       await signer1.sell(expectedBalance);
 
       expect(await signer1.balanceOf(account1.address)).to.equal(0);
@@ -566,6 +567,27 @@ describe("YarreToken", async () => {
       expect(receipt)
         .to.emit(yarreToken, "Transfer")
         .withArgs("0x", account1.address, expectedBalance);
+    });
+
+    it("Should emit Transfer on sell", async () => {
+      const { yarreToken, account1, initialPrice } = await loadFixture(deploy);
+
+      const amount = ethers.parseEther("10");
+      const signer1 = yarreToken.connect(account1);
+      await signer1.buy({ value: amount });
+
+      const feePercentage = await signer1.feePercentage();
+      let expectedBalance = amount * initialPrice;
+      const fee = (expectedBalance * feePercentage) / BigInt(10000);
+      expectedBalance -= fee;
+
+      await signer1.approve(yarreToken.getAddress(), expectedBalance);
+      const receipt = await signer1.sell(expectedBalance);
+
+      expect(await signer1.balanceOf(account1.address)).to.equal(0);
+      expect(receipt)
+        .to.emit(yarreToken, "Transfer")
+        .withArgs(account1.address, "0x", expectedBalance);
     });
 
     it("Should emit Vote and StartVoting on first vote", async () => {
