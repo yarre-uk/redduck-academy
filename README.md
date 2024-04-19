@@ -11,3 +11,8 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 npx hardhat ignition deploy ./ignition/modules/Lock.ts
 ```
+
+```
+yarn hardhat ignition deploy ./ignition/modules/<module name>.ts --reset
+yarn verify --contract contracts/<sol file:name> --network sepolia <contract address> <arguments>
+```
