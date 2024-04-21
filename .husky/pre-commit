@@ -1,4 +1,4 @@
-# yarn lint-staged
-# yarn test
-
 echo "Running tests..."
+
+yarn lint-staged
+yarn test
