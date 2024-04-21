@@ -47,14 +47,14 @@ describe("YarreToken", async () => {
     it("Only owner should be able to access", async function () {
       const { yarreToken } = await loadFixture(deploy);
 
-      expect(await yarreToken.getBalance()).to.equal(0);
+      expect(await yarreToken.getFeeBalance()).to.equal(0);
     });
 
     it("Should fail because only owner may access", async function () {
       const { yarreToken, account1 } = await loadFixture(deploy);
 
       await expect(
-        yarreToken.connect(account1).getBalance()
+        yarreToken.connect(account1).getFeeBalance()
       ).to.be.rejectedWith("Ownable: caller is not the owner");
     });
   });
@@ -71,6 +71,8 @@ describe("YarreToken", async () => {
       let expectedBalance = amount * initialPrice;
       const fee = (expectedBalance * feePercentage) / BigInt(10000);
       expectedBalance -= fee;
+
+      expect(await yarreToken.getFeeBalance()).to.equal(fee);
 
       expect(await signer1.balanceOf(account1.address)).to.equal(
         expectedBalance
@@ -259,6 +261,24 @@ describe("YarreToken", async () => {
       });
 
       it("Should be able to vote the same price of someone who has voted with 0.1%", async () => {
+        const { yarreToken, account1, baseVoteAmount, votingTime } =
+          await loadFixture(deploy);
+
+        yarreToken.vote(1500);
+
+        const signer1 = yarreToken.connect(account1);
+        await signer1.buy({ value: baseVoteAmount });
+
+        await signer1.vote(1500);
+
+        await time.increase(votingTime);
+
+        await signer1.stopVoting();
+
+        expect(await yarreToken.price()).to.be.equal(1500);
+      });
+
+      it("Should not be able to vote the same price of someone who has voted with 0.1%", async () => {
         const { yarreToken, account1, baseVoteAmount } = await loadFixture(
           deploy
         );
