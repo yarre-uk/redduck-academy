@@ -3,8 +3,6 @@ pragma solidity 0.8.24;
 
 import "./BaseERC20.sol";
 
-import "hardhat/console.sol";
-
 /// @title VotingERC20
 /// @dev This contract extends BaseERC20 to allow for voting on token price.
 /// @notice This contract allows for voting on the price of the token.

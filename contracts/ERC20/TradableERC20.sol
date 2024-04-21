@@ -60,7 +60,6 @@ contract TradableERC20 is VotingERC20 {
     address _to,
     uint256 _value
   ) public override haveNotVoted returns (bool) {
-    console.log("transfer", hasVoted[votingId][msg.sender]);
     return super.transfer(_to, _value);
   }
 
@@ -69,7 +68,6 @@ contract TradableERC20 is VotingERC20 {
     address _spender,
     uint256 _value
   ) public override haveNotVoted returns (bool) {
-    console.log("approve", hasVoted[votingId][msg.sender]);
     return super.approve(_spender, _value);
   }
 
