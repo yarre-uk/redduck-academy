@@ -4,8 +4,6 @@ pragma solidity 0.8.24;
 import "./VotingERC20.sol";
 
 contract BuyableERC20 is VotingERC20 {
-  uint private _balance = 0;
-
   uint public feePercentage = 1; // 0.01%
 
   constructor(
@@ -34,7 +32,6 @@ contract BuyableERC20 is VotingERC20 {
 
     _mint(msg.sender, amount - fee);
     _mint(address(this), fee);
-    _balance += msg.value;
   }
 
   function sell(uint _amount) public haveNotVoted {
@@ -47,7 +44,6 @@ contract BuyableERC20 is VotingERC20 {
     transferFrom(msg.sender, address(this), _amount);
     _burn(address(this), _amount - fee);
 
-    _balance -= value;
     payable(msg.sender).transfer(value);
   }
 
@@ -76,12 +72,9 @@ contract BuyableERC20 is VotingERC20 {
     _burn(address(this), _balances[address(this)]);
   }
 
+  // test
   receive() external payable {
-    _balance += msg.value;
-  }
-
-  function getBalance() public view onlyOwner returns (uint) {
-    return _balance;
+    payable(address(this)).transfer(msg.value);
   }
 
   function getFeeBalance() public view onlyOwner returns (uint) {
@@ -90,11 +83,9 @@ contract BuyableERC20 is VotingERC20 {
 
   function withdrawBalanceAmount(uint _value) public onlyOwner {
     payable(_owner).transfer(_value);
-    _balance -= _value;
   }
 
   function withdrawBalance() public onlyOwner {
-    payable(_owner).transfer(_balance);
-    _balance = 0;
+    payable(_owner).transfer(address(this).balance);
   }
 }
