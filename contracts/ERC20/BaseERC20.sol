@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./IERC20.sol";
-import "../utils/Ownable.sol";
+import { IERC20 } from "./IERC20.sol";
+import { Ownable } from "../utils/Ownable.sol";
 
 /// @title BaseERC20
 /// @dev This contract implements the basic functionality of an ERC20 token.
@@ -10,13 +10,13 @@ import "../utils/Ownable.sol";
 /// It is abstract and should be inherited by a concrete implementation.
 abstract contract BaseERC20 is IERC20, Ownable {
   /// @notice The total supply of the token.
-  uint internal _totalSupply;
+  uint256 internal _totalSupply;
 
   /// @notice The balance of each account.
-  mapping(address => uint) internal _balances;
+  mapping(address => uint256) internal _balances;
 
   /// @notice The allowance of each account to another.
-  mapping(address => mapping(address => uint)) internal _allowances;
+  mapping(address => mapping(address => uint256)) internal _allowances;
 
   /// @notice The name of the token.
   string public name;
@@ -29,7 +29,7 @@ abstract contract BaseERC20 is IERC20, Ownable {
 
   /// @dev Initializes the contract with the initial supply, name, symbol, and decimals.
   constructor(
-    uint _initialSupply,
+    uint256 _initialSupply,
     string memory _name,
     string memory _symbol,
     uint8 _decimals
@@ -129,10 +129,5 @@ abstract contract BaseERC20 is IERC20, Ownable {
     _totalSupply = _totalSupply - _amount;
 
     emit Transfer(address(0), _address, _amount);
-  }
-
-  /// @dev Fallback function that reverts any ether sent to this contract.
-  fallback() external {
-    revert("Invalid function call");
   }
 }

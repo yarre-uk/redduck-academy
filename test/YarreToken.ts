@@ -2,6 +2,7 @@ import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
+// eslint-disable-next-line camelcase
 import { YarreToken__factory } from "../typechain-types";
 
 describe("YarreToken", async () => {
@@ -16,11 +17,11 @@ describe("YarreToken", async () => {
 
     const yarreToken = await new YarreToken__factory(owner).deploy(
       initialSupply,
-      initialPrice
+      initialPrice,
     );
 
     expect(await yarreToken.balanceOf(owner.address)).to.equal(
-      ethers.parseEther("10000")
+      ethers.parseEther("10000"),
     );
 
     return {
@@ -54,7 +55,7 @@ describe("YarreToken", async () => {
       const { yarreToken, account1 } = await loadFixture(deploy);
 
       await expect(
-        yarreToken.connect(account1).getFeeBalance()
+        yarreToken.connect(account1).getFeeBalance(),
       ).to.be.rejectedWith("Ownable: caller is not the owner");
     });
   });
@@ -75,7 +76,7 @@ describe("YarreToken", async () => {
       expect(await yarreToken.getFeeBalance()).to.equal(fee);
 
       expect(await signer1.balanceOf(account1.address)).to.equal(
-        expectedBalance
+        expectedBalance,
       );
     });
 
@@ -92,7 +93,7 @@ describe("YarreToken", async () => {
       expectedBalance -= fee;
 
       expect(await signer1.balanceOf(account1.address)).to.equal(
-        expectedBalance
+        expectedBalance,
       );
 
       await signer1.approve(yarreToken.getAddress(), expectedBalance);
@@ -101,7 +102,7 @@ describe("YarreToken", async () => {
       expect(await signer1.balanceOf(account1.address)).to.equal(0);
 
       expect(await ethers.provider.getBalance(account1.address)).to.be.lessThan(
-        ethers.parseEther("10000")
+        ethers.parseEther("10000"),
       );
     });
 
@@ -118,20 +119,19 @@ describe("YarreToken", async () => {
       expectedBalance -= fee;
 
       expect(await signer1.balanceOf(account1.address)).to.equal(
-        expectedBalance
+        expectedBalance,
       );
 
       await expect(signer1.sell(expectedBalance + 1n)).to.be.rejectedWith(
-        "Insufficient balance"
+        "Insufficient balance",
       );
     });
   });
 
   describe("Transfer and withdraw", async () => {
     it("Should transfer tokens", async () => {
-      const { yarreToken, owner, account1, initialSupply } = await loadFixture(
-        deploy
-      );
+      const { yarreToken, owner, account1, initialSupply } =
+        await loadFixture(deploy);
 
       const amount = ethers.parseEther("10");
       const signer1 = yarreToken.connect(account1);
@@ -140,7 +140,7 @@ describe("YarreToken", async () => {
 
       expect(await signer1.balanceOf(account1.address)).to.equal(amount);
       expect(await yarreToken.balanceOf(owner.address)).to.equal(
-        initialSupply - amount
+        initialSupply - amount,
       );
     });
 
@@ -152,7 +152,7 @@ describe("YarreToken", async () => {
       await yarreToken.approve(account1.address, amount);
 
       expect(
-        await yarreToken.allowance(owner.address, account1.address)
+        await yarreToken.allowance(owner.address, account1.address),
       ).to.equal(amount);
     });
 
@@ -169,14 +169,14 @@ describe("YarreToken", async () => {
 
       expect(await signer1.balanceOf(account1.address)).to.equal(amount);
       expect(await yarreToken.balanceOf(owner.address)).to.equal(
-        initialSupply - amount
+        initialSupply - amount,
       );
     });
   });
 
   describe("Voting", async () => {
     it("Check percentage calculations", async () => {
-      const { yarreToken, owner, account1 } = await loadFixture(deploy);
+      const { yarreToken, account1 } = await loadFixture(deploy);
 
       const amount = ethers.parseEther("1");
 
@@ -192,48 +192,44 @@ describe("YarreToken", async () => {
 
     describe("Voting", async () => {
       it("Should start voting if user has 0.1%", async () => {
-        const { yarreToken, owner, account1 } = await loadFixture(deploy);
-
-        const amount = ethers.parseEther("1");
+        const { yarreToken, account1, premiumVoteAmount } =
+          await loadFixture(deploy);
 
         const signer1 = yarreToken.connect(account1);
-        await signer1.buy({ value: amount });
+        await signer1.buy({ value: premiumVoteAmount });
 
         await signer1.vote(500);
 
-        expect(await signer1.isVoting()).to.be.true;
+        expect(await signer1.isVoting()).to.be.equal(true);
       });
 
       it("Should not start voting if user has less than 0.1%", async () => {
-        const { yarreToken, account1, baseVoteAmount } = await loadFixture(
-          deploy
-        );
+        const { yarreToken, account1, baseVoteAmount } =
+          await loadFixture(deploy);
 
         const signer1 = yarreToken.connect(account1);
         await signer1.buy({ value: baseVoteAmount });
 
         await expect(signer1.vote(500)).to.be.rejectedWith(
-          "Voting is not started"
+          "Voting is not started",
         );
       });
 
       it("Should not with lessThan 0.05%", async () => {
-        const { yarreToken, account1, baseVoteAmount } = await loadFixture(
-          deploy
-        );
+        const { yarreToken, account1, baseVoteAmount } =
+          await loadFixture(deploy);
 
         const signer1 = yarreToken.connect(account1);
         await signer1.buy({ value: baseVoteAmount / 2n });
 
         await expect(signer1.vote(500)).to.be.rejectedWith(
-          "Can't vote with such small amount of tokens"
+          "Can't vote with such small amount of tokens",
         );
       });
 
       it("Should fail if user will try to vote the price that isn't in voting list 0.05%", async () => {
-        const { yarreToken, account1, baseVoteAmount } = await loadFixture(
-          deploy
-        );
+        const { yarreToken, account1, baseVoteAmount } =
+          await loadFixture(deploy);
 
         await yarreToken.vote(1500);
 
@@ -241,14 +237,13 @@ describe("YarreToken", async () => {
         await signer1.buy({ value: baseVoteAmount });
 
         await expect(signer1.vote(950)).to.be.rejectedWith(
-          "Price is not in the voting list"
+          "Price is not in the voting list",
         );
       });
 
       it("Should not start voting if user has already voted", async () => {
-        const { yarreToken, account1, premiumVoteAmount } = await loadFixture(
-          deploy
-        );
+        const { yarreToken, account1, premiumVoteAmount } =
+          await loadFixture(deploy);
 
         const signer1 = yarreToken.connect(account1);
         await signer1.buy({ value: premiumVoteAmount });
@@ -256,7 +251,7 @@ describe("YarreToken", async () => {
         await signer1.vote(500);
 
         await expect(signer1.vote(500)).to.be.rejectedWith(
-          "User has already voted"
+          "User has already voted",
         );
       });
 
@@ -271,17 +266,19 @@ describe("YarreToken", async () => {
 
         await signer1.vote(1500);
 
+        expect(await yarreToken.isVoting()).to.be.equal(true);
+
         await time.increase(votingTime);
 
         await signer1.stopVoting();
+        expect(await yarreToken.isVoting()).to.be.equal(false);
 
         expect(await yarreToken.price()).to.be.equal(1500);
       });
 
       it("Should not be able to vote the same price of someone who has voted with 0.1%", async () => {
-        const { yarreToken, account1, baseVoteAmount } = await loadFixture(
-          deploy
-        );
+        const { yarreToken, account1, baseVoteAmount } =
+          await loadFixture(deploy);
 
         yarreToken.vote(1500);
 
@@ -289,14 +286,14 @@ describe("YarreToken", async () => {
         await signer1.buy({ value: baseVoteAmount });
 
         await expect(signer1.vote(500)).to.be.rejectedWith(
-          "Price is not in the voting list"
+          "Price is not in the voting list",
         );
       });
     });
 
     describe("Starting and stopping", async () => {
       it("Should not stop voting if time hasn't passed", async () => {
-        const { yarreToken, account1, premiumVoteAmount, votingTime } =
+        const { yarreToken, account1, premiumVoteAmount } =
           await loadFixture(deploy);
 
         const signer1 = yarreToken.connect(account1);
@@ -305,7 +302,7 @@ describe("YarreToken", async () => {
         await signer1.vote(500);
 
         await expect(signer1.stopVoting()).to.be.rejectedWith(
-          "Voting time hasn't passed"
+          "Voting time hasn't passed",
         );
       });
 
@@ -322,14 +319,14 @@ describe("YarreToken", async () => {
 
         await signer1.stopVoting();
 
-        expect(await signer1.isVoting()).to.be.false;
+        expect(await signer1.isVoting()).to.be.equal(false);
       });
 
       it("Should not stop voting if it hasn't been started", async () => {
         const { yarreToken } = await loadFixture(deploy);
 
         await expect(yarreToken.stopVoting()).to.be.rejectedWith(
-          "Voting is not started"
+          "Voting is not started",
         );
       });
 
@@ -438,32 +435,28 @@ describe("YarreToken", async () => {
 
     describe("Blocking actions when voted", async () => {
       it("Should not be able to buy when voted", async () => {
-        const { yarreToken, account1, premiumVoteAmount } = await loadFixture(
-          deploy
-        );
+        const { yarreToken, account1, premiumVoteAmount } =
+          await loadFixture(deploy);
 
         const signer1 = yarreToken.connect(account1);
         await signer1.buy({ value: premiumVoteAmount });
         await signer1.vote(500);
 
         await expect(
-          signer1.buy({ value: premiumVoteAmount })
-        ).to.be.rejectedWith(
-          "You have voted, cannot buy or sell, transfer or approve"
-        );
+          signer1.buy({ value: premiumVoteAmount }),
+        ).to.be.rejectedWith("You have voted");
       });
 
       it("Should not be able to sell when voted", async () => {
-        const { yarreToken, account1, premiumVoteAmount } = await loadFixture(
-          deploy
-        );
+        const { yarreToken, account1, premiumVoteAmount } =
+          await loadFixture(deploy);
 
         const signer1 = yarreToken.connect(account1);
         await signer1.buy({ value: premiumVoteAmount });
         await signer1.vote(500);
 
         await expect(signer1.sell(premiumVoteAmount)).to.be.rejectedWith(
-          "You have voted, cannot buy or sell, transfer or approve"
+          "You have voted",
         );
       });
 
@@ -476,7 +469,7 @@ describe("YarreToken", async () => {
         await signer1.vote(500);
 
         await expect(signer1.transfer(owner.address, 1)).to.be.rejectedWith(
-          "You have voted, cannot buy or sell, transfer or approve"
+          "You have voted",
         );
       });
 
@@ -489,10 +482,8 @@ describe("YarreToken", async () => {
         await signer1.vote(500);
 
         await expect(
-          signer1.approve(owner.address, premiumVoteAmount)
-        ).to.be.rejectedWith(
-          "You have voted, cannot buy or sell, transfer or approve"
-        );
+          signer1.approve(owner.address, premiumVoteAmount),
+        ).to.be.rejectedWith("You have voted");
       });
     });
   });
@@ -582,7 +573,7 @@ describe("YarreToken", async () => {
       expectedBalance -= fee;
 
       expect(await signer1.balanceOf(account1.address)).to.equal(
-        expectedBalance
+        expectedBalance,
       );
       expect(receipt)
         .to.emit(yarreToken, "Transfer")
@@ -611,9 +602,8 @@ describe("YarreToken", async () => {
     });
 
     it("Should emit Vote and StartVoting on first vote", async () => {
-      const { yarreToken, account1, premiumVoteAmount } = await loadFixture(
-        deploy
-      );
+      const { yarreToken, account1, premiumVoteAmount } =
+        await loadFixture(deploy);
 
       const signer1 = yarreToken.connect(account1);
       await signer1.buy({ value: premiumVoteAmount });
