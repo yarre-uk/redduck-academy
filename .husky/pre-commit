@@ -2,3 +2,6 @@ echo "Running tests..."
 
 yarn lint-staged
 yarn test
+
+surya mdreport report_outfile.md contracts/**/*.sol
+git add report_outfile.md
