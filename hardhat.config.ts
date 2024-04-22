@@ -1,10 +1,8 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
-import { vars } from "hardhat/config";
-import "@nomicfoundation/hardhat-verify";
+import { type HardhatUserConfig } from "hardhat/config";
 
-const INFURA_API_KEY = vars.get("INFURA_API_KEY");
-const PRIVATE_KEY = vars.get("PRIVATE_KEY");
+import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-verify";
+import { ETHERSCAN_API_KEY, INFURA_API_KEY, PRIVATE_KEY } from "./env";
 
 const config: HardhatUserConfig = {
   solidity: "0.8.24",
@@ -18,7 +16,10 @@ const config: HardhatUserConfig = {
     enabled: true,
   },
   etherscan: {
-    apiKey: "J4INZAGEFDUNW72HJ2NV5YHXE773C92PGR",
+    apiKey: ETHERSCAN_API_KEY,
+  },
+  gasReporter: {
+    enabled: true,
   },
 };
 
