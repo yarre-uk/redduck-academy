@@ -1,5 +1,6 @@
 echo "Running tests..."
 
+y | yarn codestyle:fix
 yarn lint-staged
 yarn test
 
