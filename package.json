@@ -17,7 +17,9 @@
     "format:sol": "prettier \"contracts/**/*.sol\" --check",
     "format:sol:fix": "prettier \"contracts/**/*.sol\" --write",
     "codestyle": "run-s lint:* format:*",
-    "codestyle:fix": "run-s lint:*:* format:*:*"
+    "codestyle:fix": "run-s lint:*:* format:*:*",
+    "slither": "slither . --config-file ./slither.config.json",
+    "slither:summary": "yarn slither --print human-summary --config-file ./slither.config.json"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
