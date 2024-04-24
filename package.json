@@ -19,7 +19,7 @@
     "codestyle": "run-s lint:* format:*",
     "codestyle:fix": "run-s lint:*:* format:*:*",
     "slither": "slither . --config-file ./slither.config.json",
-    "slither:summary": "yarn slither --print human-summary --config-file ./slither.config.json"
+    "slither:summary": "slither . --print human-summary --config-file ./slither.config.json"
   },
   "license": "MIT",
   "devDependencies": {
