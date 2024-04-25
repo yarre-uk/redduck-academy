@@ -7,9 +7,9 @@
 |-------------|--------------|
 | contracts/DOS/DOS.sol | [object Promise] |
 | contracts/Reentrancy/Attacker.sol | [object Promise] |
-| contracts/Reentrancy/AttackerAll.sol | [object Promise] |
 | contracts/Reentrancy/Reentrancy.sol | [object Promise] |
 | contracts/utils/Ownable.sol | [object Promise] |
+| contracts/utils/ReentrancyGuard.sol | [object Promise] |
 
 
 ### Contracts Description Table
@@ -20,9 +20,9 @@
 |     └      |  **Function Name**  |  **Visibility**  |  **Mutability**  |  **Modifiers**  |
 ||||||
 | **DOS** | Implementation |  |||
-| └ | deposit | Public ❗️ |  💵 | canVote |
-| └ | withdraw | Public ❗️ | 🛑  | canVote |
-| └ | vote | Public ❗️ | 🛑  | canVote |
+| └ | deposit | Public ❗️ |  💵 | canInteract |
+| └ | withdraw | Public ❗️ | 🛑  | canInteract |
+| └ | vote | Public ❗️ | 🛑  | canInteract |
 | └ | concludeVoting | Public ❗️ | 🛑  |NO❗️ |
 ||||||
 | **Attacker** | Implementation |  |||
@@ -31,22 +31,22 @@
 | └ | deposit | Public ❗️ |  💵 |NO❗️ |
 | └ | attack | Public ❗️ |  💵 |NO❗️ |
 ||||||
-| **AttackerAll** | Implementation |  |||
-| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
-| └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
+| **Reentrancy** | Implementation | ReentrancyGuard |||
 | └ | deposit | Public ❗️ |  💵 |NO❗️ |
-| └ | attack | Public ❗️ |  💵 |NO❗️ |
-||||||
-| **Reentrancy** | Implementation |  |||
-| └ | deposit | Public ❗️ |  💵 |NO❗️ |
-| └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
-| └ | withdrawAll | Public ❗️ | 🛑  |NO❗️ |
+| └ | withdraw | Public ❗️ | 🛑  | nonReentrant |
+| └ | withdrawAll | Public ❗️ | 🛑  | nonReentrant |
 | └ | transfer | Public ❗️ | 🛑  |NO❗️ |
 | └ | approve | Public ❗️ | 🛑  |NO❗️ |
 | └ | transferFrom | Public ❗️ | 🛑  |NO❗️ |
 ||||||
 | **Ownable** | Implementation |  |||
 | └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+||||||
+| **ReentrancyGuard** | Implementation |  |||
+| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+| └ | _nonReentrantBefore | Private 🔐 | 🛑  | |
+| └ | _nonReentrantAfter | Private 🔐 | 🛑  | |
+| └ | _reentrancyGuardEntered | Internal 🔒 |   | |
 
 
 ### Legend

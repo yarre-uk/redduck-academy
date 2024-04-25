@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-contract Reentrancy {
+import { ReentrancyGuard } from "../utils/ReentrancyGuard.sol";
+
+contract Reentrancy is ReentrancyGuard {
     mapping(address => uint256) public balances;
     mapping(address => mapping(address => uint256)) public allowances;
 
@@ -9,17 +11,17 @@ contract Reentrancy {
         balances[msg.sender] += msg.value;
     }
 
-    function withdraw(uint256 _amount) public returns (bool) {
+    function withdraw(uint256 _amount) public nonReentrant returns (bool) {
         require(balances[msg.sender] >= _amount, "Insufficient balance");
-        (bool success, ) = msg.sender.call{ value: _amount }("");
         balances[msg.sender] -= _amount;
+        (bool success, ) = msg.sender.call{ value: _amount }("");
         return success;
     }
 
-    function withdrawAll() public returns (bool) {
+    function withdrawAll() public nonReentrant returns (bool) {
         uint256 amount = balances[msg.sender];
+        balances[msg.sender] -= balances[msg.sender];
         (bool success, ) = msg.sender.call{ value: amount }("");
-        balances[msg.sender] = 0;
         return success;
     }
 

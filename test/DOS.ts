@@ -1,5 +1,4 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { assert } from "chai";
 import { type HDNodeWallet, Wallet } from "ethers";
 import { ethers } from "hardhat";
 
@@ -29,6 +28,8 @@ describe("DOS", async () => {
       }),
     );
 
+    console.log("---");
+
     return {
       contract,
       account1,
@@ -37,23 +38,19 @@ describe("DOS", async () => {
     };
   }
 
-  it("Should fail", async () => {
+  it("should not fail", async () => {
     const { contract, accounts } = await loadFixture(deploy);
 
     for (let i = 0; i < accounts.length; i++) {
       const signer = contract.connect(accounts[i]);
-      try {
-        await signer.deposit({ value: 1n, gasLimit: 300000 });
-        await signer.vote(100, { gasLimit: 300000 });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        assert(
-          error.message.includes("ran out of gas"),
-          `Expected 'ran out of gas', but got ${error.message}`,
-        );
-        break;
+      await signer.deposit({ value: 1n, gasLimit: 100000 });
+      await signer.vote(100, { gasLimit: 100000 });
+
+      if (i % 10 === 0) {
+        console.log(`i = ${i}`);
       }
-      console.log("i ->", i);
     }
+
+    await contract.concludeVoting();
   }).timeout(10000000);
 });
