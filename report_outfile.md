@@ -9,6 +9,7 @@
 | contracts/ERC20/IERC20.sol | [object Promise] |
 | contracts/ERC20/TradableERC20.sol | [object Promise] |
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
+| contracts/utils/Merkle.sol | [object Promise] |
 | contracts/utils/Ownable.sol | [object Promise] |
 
 
@@ -59,6 +60,9 @@
 | └ | stopVoting | Public ❗️ | 🛑  |NO❗️ |
 | └ | vote | Public ❗️ | 🛑  |NO❗️ |
 | └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
+||||||
+| **Merkle** | Implementation |  |||
+| └ | checkProof | Public ❗️ |   |NO❗️ |
 ||||||
 | **Ownable** | Implementation |  |||
 | └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
