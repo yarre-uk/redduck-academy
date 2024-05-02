@@ -6,7 +6,7 @@ contract Merkle {
         bytes32 root,
         bytes32 leaf,
         bytes32[] memory proof
-    ) public pure returns (bool) {
+    ) public pure {
         bytes32 computedHash = leaf;
 
         for (uint256 i = 0; i < proof.length; i++) {
@@ -23,6 +23,6 @@ contract Merkle {
             }
         }
 
-        return computedHash == root;
+        require(computedHash == root, "Merkle: Invalid proof");
     }
 }

@@ -1,81 +1,45 @@
-function computeHash(computedHash: string, proofElement: string): string {
-  const sortedHashes = [computedHash, proofElement].sort();
+import { ethers } from "hardhat";
 
-  return `${sortedHashes[0]}${sortedHashes[1]}`;
+import MerkleTree from "../utils/merkle";
+
+const ACCOUNT_NUMBER = 100;
+
+const accounts = [];
+const addresses = [];
+
+for (let i = 0; i < ACCOUNT_NUMBER; i++) {
+  const account = ethers.Wallet.createRandom(ethers.provider);
+  accounts.push(account);
+  addresses.push(account.address);
 }
 
-const oneLevelUp = (inputArray: string[]) => {
-  const result = [];
-  const inp = [...inputArray];
+const testArray = new Array(ACCOUNT_NUMBER).fill(0).map((_, i) => i.toString());
 
-  if (inp.length % 2 === 1) {
-    inp.push(inp[inp.length - 1]);
+const merkle = new MerkleTree(testArray);
+
+// console.log(merkle.getTree());
+
+console.log("---");
+
+for (let i = 0; i < 16; i++) {
+  const proof = merkle.getMerkleProof(i);
+
+  if (merkle.verify(proof, testArray[i]) === false) {
+    console.log("proof is invalid", i);
   }
 
-  for (let i = 0; i < inp.length; i += 2) {
-    result.push(computeHash(inp[i], inp[i + 1]));
-  }
+  // console.log(testArray[i], proof);
+}
 
-  console.log(result);
+console.log("---");
 
-  return result;
-};
+// for (let i = 0; i < ACCOUNT_NUMBER; i++) {
+//   console.log("hash ->", addresses[i]);
+//   const proof = merkle.getMerkleProof(i);
 
-const getMerkleRoot = (array: string[]) => {
-  let result = array;
+//   if (proof.some((p) => p === undefined)) {
+//     console.log("proof is invalid");
+//   }
 
-  while (result.length > 1) {
-    result = oneLevelUp(result);
-  }
-
-  return result[0];
-};
-
-const getMerkleProof = (array: string[], index: number) => {
-  const result = [];
-  let currentLayer = [...array];
-  let currentIndex = index;
-  let firstLayer = true;
-
-  while (currentLayer.length > 1) {
-    if (currentLayer.length % 2) {
-      currentLayer.push(currentLayer[currentLayer.length - 1]);
-    }
-
-    if (!firstLayer) {
-      result.push(
-        currentIndex % 2
-          ? currentLayer[currentIndex - 1]
-          : currentLayer[currentIndex + 1],
-      );
-    } else {
-      result.push(currentLayer[currentIndex]);
-      firstLayer = false;
-    }
-
-    currentIndex = Math.floor(currentIndex / 2);
-    currentLayer = oneLevelUp(currentLayer);
-  }
-  return result;
-};
-
-const testArray = [
-  "0",
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "a",
-  "b",
-  "c",
-  "d",
-  "e",
-  "f",
-];
-
-console.log(getMerkleProof(testArray, 5));
+//   console.log(proof);
+// }
