@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { YarreToken } from "./YarreToken.sol";
-import { Ownable } from "./utils/Ownable.sol";
+import { YarreToken } from "../YarreToken.sol";
+import { Ownable } from "../utils/Ownable.sol";
 
 contract Vesting1 is Ownable {
     uint256 public start = block.timestamp;

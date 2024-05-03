@@ -11,6 +11,9 @@
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
 | contracts/utils/Merkle.sol | [object Promise] |
 | contracts/utils/Ownable.sol | [object Promise] |
+| contracts/Vesting/Vesting1.sol | [object Promise] |
+| contracts/Vesting/Vesting2.sol | [object Promise] |
+| contracts/Vesting/Vesting3.sol | [object Promise] |
 
 
 ### Contracts Description Table
@@ -41,10 +44,11 @@
 ||||||
 | **TradableERC20** | Implementation | VotingERC20 |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VotingERC20 |
-| └ | buy | Public ❗️ |  💵 | haveNotVoted |
-| └ | sell | Public ❗️ | 🛑  | haveNotVoted |
-| └ | transfer | Public ❗️ | 🛑  | haveNotVoted |
-| └ | approve | Public ❗️ | 🛑  | haveNotVoted |
+| └ | updateVoteOnInteraction | Internal 🔒 | 🛑  | |
+| └ | buy | Public ❗️ |  💵 |NO❗️ |
+| └ | sell | Public ❗️ | 🛑  |NO❗️ |
+| └ | transfer | Public ❗️ | 🛑  |NO❗️ |
+| └ | approve | Public ❗️ | 🛑  |NO❗️ |
 | └ | setFeePercentage | Public ❗️ | 🛑  | onlyOwner |
 | └ | collectAndBurnFee | Public ❗️ | 🛑  | onlyOwner |
 | └ | getFeeBalance | Public ❗️ |   | onlyOwner |
@@ -66,6 +70,20 @@
 ||||||
 | **Ownable** | Implementation |  |||
 | └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+||||||
+| **Vesting1** | Implementation | Ownable |||
+| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+| └ | claim | Public ❗️ | 🛑  |NO❗️ |
+| └ | addAddress | Public ❗️ | 🛑  | onlyOwner |
+||||||
+| **Vesting2** | Implementation | Ownable, Merkle |||
+| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+| └ | claim | Public ❗️ | 🛑  |NO❗️ |
+| └ | setRoot | Public ❗️ | 🛑  | onlyOwner |
+||||||
+| **Vesting3** | Implementation | Ownable |||
+| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+| └ | claim | Public ❗️ | 🛑  |NO❗️ |
 
 
 ### Legend

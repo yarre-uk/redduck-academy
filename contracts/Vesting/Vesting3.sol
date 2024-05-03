@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { YarreToken } from "./YarreToken.sol";
-import { Ownable } from "./utils/Ownable.sol";
-import { Merkle } from "./utils/Merkle.sol";
+import { YarreToken } from "../YarreToken.sol";
+import { Ownable } from "../utils/Ownable.sol";
+import { Merkle } from "../utils/Merkle.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
