@@ -11,9 +11,9 @@ import {
 } from "../typechain-types";
 import MerkleTree from "../utils/merkle";
 
-const ACCOUNT_NUMBER = 150;
+const ACCOUNT_NUMBER = 10;
 
-describe("Vesting1", async () => {
+describe("Vesting", async () => {
   async function deploy() {
     const [owner, acc1, acc2] = await ethers.getSigners();
 
@@ -34,17 +34,17 @@ describe("Vesting1", async () => {
       tokenContract.getAddress(),
     );
 
-    await tokenContract.transfer(
+    await tokenContract["transfer(address,uint256)"](
       vestingContract1.getAddress(),
       10000n * BigInt(ACCOUNT_NUMBER),
     );
 
-    await tokenContract.transfer(
+    await tokenContract["transfer(address,uint256)"](
       vestingContract2.getAddress(),
       10000n * BigInt(ACCOUNT_NUMBER),
     );
 
-    await tokenContract.transfer(
+    await tokenContract["transfer(address,uint256)"](
       vestingContract3.getAddress(),
       10000n * BigInt(ACCOUNT_NUMBER),
     );

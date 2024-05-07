@@ -11,6 +11,7 @@
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
 | contracts/utils/Merkle.sol | [object Promise] |
 | contracts/utils/Ownable.sol | [object Promise] |
+| contracts/utils/VotingLinkedList.sol | [object Promise] |
 | contracts/Vesting/Vesting1.sol | [object Promise] |
 | contracts/Vesting/Vesting2.sol | [object Promise] |
 | contracts/Vesting/Vesting3.sol | [object Promise] |
@@ -46,8 +47,12 @@
 | └ | <Constructor> | Public ❗️ | 🛑  | VotingERC20 |
 | └ | updateVoteOnInteraction | Internal 🔒 | 🛑  | |
 | └ | buy | Public ❗️ |  💵 |NO❗️ |
+| └ | buy | Public ❗️ |  💵 |NO❗️ |
+| └ | sell | Public ❗️ | 🛑  |NO❗️ |
 | └ | sell | Public ❗️ | 🛑  |NO❗️ |
 | └ | transfer | Public ❗️ | 🛑  |NO❗️ |
+| └ | transfer | Public ❗️ | 🛑  |NO❗️ |
+| └ | approve | Public ❗️ | 🛑  |NO❗️ |
 | └ | approve | Public ❗️ | 🛑  |NO❗️ |
 | └ | setFeePercentage | Public ❗️ | 🛑  | onlyOwner |
 | └ | collectAndBurnFee | Public ❗️ | 🛑  | onlyOwner |
@@ -59,17 +64,29 @@
 | └ | <Constructor> | Public ❗️ | 🛑  | BaseERC20 |
 | └ | _ownsMoreThan | Internal 🔒 |   | |
 | └ | _startVoting | Internal 🔒 | 🛑  | |
-| └ | _updatePrice | Internal 🔒 | 🛑  | |
+| └ | _updateList | Internal 🔒 | 🛑  | |
 | └ | userPercentage | Public ❗️ |   |NO❗️ |
 | └ | stopVoting | Public ❗️ | 🛑  |NO❗️ |
 | └ | vote | Public ❗️ | 🛑  |NO❗️ |
 | └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
+| └ | setVotingList | Public ❗️ | 🛑  | onlyOwner |
 ||||||
 | **Merkle** | Implementation |  |||
 | └ | checkProof | Public ❗️ |   |NO❗️ |
 ||||||
 | **Ownable** | Implementation |  |||
 | └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+||||||
+| **VotingLinkedList** | Implementation |  |||
+| └ | getById | Public ❗️ |   |NO❗️ |
+| └ | getHead | Public ❗️ |   |NO❗️ |
+| └ | getTail | Public ❗️ |   |NO❗️ |
+| └ | getId | Public ❗️ |   |NO❗️ |
+| └ | push | Public ❗️ | 🛑  |NO❗️ |
+| └ | insert | Public ❗️ | 🛑  |NO❗️ |
+| └ | deleteNode | Public ❗️ | 🛑  |NO❗️ |
+| └ | clear | Public ❗️ | 🛑  |NO❗️ |
+| └ | traverse | Public ❗️ |   |NO❗️ |
 ||||||
 | **Vesting1** | Implementation | Ownable |||
 | └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
