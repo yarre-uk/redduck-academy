@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import { VotingLinkedList, Data } from "../utils/VotingLinkedList.sol";
 import { BaseERC20 } from "./BaseERC20.sol";
+import "hardhat/console.sol";
 
 contract VotingERC20 is BaseERC20 {
     uint256 private _voteForExistingTokenAmount = 5; // 0.05% of total supply
@@ -72,6 +73,12 @@ contract VotingERC20 is BaseERC20 {
             _leadingPrice = _price;
         } else {
             votingList.insert(_id, _price, _amount);
+
+            if (votingList.getTail() == checkId) {
+                _leadingPrice = _price;
+            } else {
+                _leadingPrice = votingList.getById(votingList.getTail()).price;
+            }
         }
     }
 

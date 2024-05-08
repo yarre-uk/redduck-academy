@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import { IERC20 } from "./IERC20.sol";
 import { Ownable } from "../utils/Ownable.sol";
+import "hardhat/console.sol";
 
 abstract contract BaseERC20 is IERC20, Ownable {
     uint256 internal _totalSupply;
@@ -60,7 +61,6 @@ abstract contract BaseERC20 is IERC20, Ownable {
         address spender,
         uint256 value
     ) public virtual validAddress(spender) returns (bool) {
-        _allowances[msg.sender][spender] = 0;
         _allowances[msg.sender][spender] = value;
 
         emit Approval(msg.sender, spender, value);

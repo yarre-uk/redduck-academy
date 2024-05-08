@@ -2,7 +2,6 @@ import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-// eslint-disable-next-line camelcase
 import {
   VotingLinkedList__factory,
   YarreToken__factory,
@@ -219,6 +218,222 @@ describe("YarreToken", async () => {
       await signer1.stopVoting();
       expect(await signer1.isVoting()).to.be.equal(false);
       expect(await signer1.price()).to.be.equal(1000);
+    });
+  });
+
+  describe("Interacting with tokens whilst voting", async () => {
+    it("Should buy tokens", async () => {
+      const {
+        yarreToken,
+        account1,
+        account2,
+        initialPrice,
+        premiumVoteAmount,
+        votingTime,
+        votingContractList,
+      } = await loadFixture(deploy);
+
+      const votingList = new VotingLinkedList();
+
+      const signer1 = yarreToken.connect(account1);
+      await signer1["buy()"]({ value: premiumVoteAmount });
+      const signer2 = yarreToken.connect(account2);
+      await signer2["buy()"]({ value: premiumVoteAmount * 2n });
+
+      await signer1.vote(500, EMPTY_BYTES32);
+      await signer2.vote(1500, votingList.getId(500));
+
+      expect(await signer1._leadingPrice()).to.be.equal(1500);
+
+      let amount = ethers.parseEther("10");
+
+      await signer1["buy(bytes32)"](votingList.getId(1500), { value: amount });
+
+      amount += premiumVoteAmount;
+
+      const feePercentage = await signer1.feePercentage(); // 1 -> 0.01%
+      let expectedBalance = amount * initialPrice;
+      const fee = (expectedBalance * feePercentage) / BigInt(10000);
+      expectedBalance -= fee;
+
+      const totalFee =
+        ((amount + premiumVoteAmount * 2n) * initialPrice * feePercentage) /
+        BigInt(10000);
+
+      expect(await yarreToken._leadingPrice()).to.be.equal(500);
+
+      expect(await yarreToken.getFeeBalance()).to.equal(totalFee);
+
+      expect(await signer1.balanceOf(account1.address)).to.equal(
+        expectedBalance,
+      );
+
+      expect(await signer1.isVoting()).to.be.equal(true);
+
+      await time.increase(votingTime);
+      await signer1.stopVoting();
+      expect(await signer1.isVoting()).to.be.equal(false);
+
+      expect(await signer1.price()).to.be.equal(500);
+    });
+
+    it("Should buy tokens with voting after", async () => {
+      const { yarreToken, account1, account2, premiumVoteAmount, votingTime } =
+        await loadFixture(deploy);
+
+      const votingList = new VotingLinkedList();
+
+      const signer1 = yarreToken.connect(account1);
+      await signer1["buy()"]({ value: premiumVoteAmount });
+      const signer2 = yarreToken.connect(account2);
+      await signer2["buy()"]({ value: premiumVoteAmount * 2n });
+
+      await signer1.vote(500, EMPTY_BYTES32);
+      await signer2.vote(1500, votingList.getId(500));
+
+      expect(await signer1._leadingPrice()).to.be.equal(1500);
+
+      const amount = ethers.parseEther("10");
+
+      await signer1["buy(bytes32)"](votingList.getId(1500), { value: amount });
+
+      expect(await yarreToken._leadingPrice()).to.be.equal(500);
+      expect(await signer1.isVoting()).to.be.equal(true);
+
+      await time.increase(votingTime);
+      await signer1.stopVoting();
+
+      expect(await signer1.isVoting()).to.be.equal(false);
+      expect(await signer1.price()).to.be.equal(500);
+    });
+
+    it("Should sell tokens with voting after", async () => {
+      const {
+        yarreToken,
+        account1,
+        account2,
+        premiumVoteAmount,
+        votingTime,
+        initialPrice,
+        votingContractList,
+      } = await loadFixture(deploy);
+
+      const votingList = new VotingLinkedList();
+
+      const signer1 = yarreToken.connect(account1);
+      await signer1["buy()"]({ value: premiumVoteAmount * 5n });
+      const signer2 = yarreToken.connect(account2);
+      await signer2["buy()"]({ value: premiumVoteAmount * 6n });
+
+      await signer1.vote(500, EMPTY_BYTES32);
+      await signer2.vote(1500, votingList.getId(500));
+
+      expect(await signer1._leadingPrice()).to.be.equal(1500);
+
+      const amount = premiumVoteAmount * 3n * initialPrice;
+
+      await signer2.approve(await yarreToken.getAddress(), amount);
+      await signer2["sell(uint256,bytes32)"](amount, EMPTY_BYTES32);
+
+      expect(await yarreToken._leadingPrice()).to.be.equal(500);
+      expect(await signer2.isVoting()).to.be.equal(true);
+
+      await time.increase(votingTime);
+      await signer2.stopVoting();
+
+      expect(await signer2.isVoting()).to.be.equal(false);
+      expect(await signer2.price()).to.be.equal(500);
+    });
+
+    it("Should transfer tokens with voting after", async () => {
+      const {
+        yarreToken,
+        account1,
+        account2,
+        premiumVoteAmount,
+        votingTime,
+        initialPrice,
+      } = await loadFixture(deploy);
+
+      const votingList = new VotingLinkedList();
+
+      const signer1 = yarreToken.connect(account1);
+      await signer1["buy()"]({ value: premiumVoteAmount * 5n });
+      const signer2 = yarreToken.connect(account2);
+      await signer2["buy()"]({ value: premiumVoteAmount * 6n });
+
+      await signer1.vote(500, EMPTY_BYTES32);
+      await signer2.vote(1500, votingList.getId(500));
+
+      expect(await signer1._leadingPrice()).to.be.equal(1500);
+
+      const amount = premiumVoteAmount * 3n * initialPrice;
+
+      await signer2["transfer(address,uint256,bytes32,bytes32)"](
+        account1.address,
+        amount,
+        EMPTY_BYTES32,
+        votingList.getId(1500),
+      );
+
+      expect(await yarreToken._leadingPrice()).to.be.equal(500);
+      expect(await signer2.isVoting()).to.be.equal(true);
+
+      await time.increase(votingTime);
+      await signer2.stopVoting();
+
+      expect(await signer2.isVoting()).to.be.equal(false);
+      expect(await signer2.price()).to.be.equal(500);
+    });
+
+    it("Should transferFrom tokens with voting after", async () => {
+      const {
+        yarreToken,
+        account1,
+        account2,
+        account3,
+        premiumVoteAmount,
+        votingTime,
+        initialPrice,
+        votingContractList,
+      } = await loadFixture(deploy);
+
+      const votingList = new VotingLinkedList();
+
+      const signer1 = yarreToken.connect(account1);
+      await signer1["buy()"]({ value: premiumVoteAmount * 5n });
+      const signer2 = yarreToken.connect(account2);
+      await signer2["buy()"]({ value: premiumVoteAmount * 6n });
+      const signer3 = yarreToken.connect(account3);
+      await signer3["buy()"]({ value: premiumVoteAmount * 7n });
+
+      await signer1.vote(500, EMPTY_BYTES32);
+      await signer2.vote(1500, votingList.getId(500));
+      await signer3.vote(1000, votingList.getId(1500));
+
+      expect(await signer1._leadingPrice()).to.be.equal(1000);
+
+      const amount = premiumVoteAmount * 3n * initialPrice;
+
+      // await votingContractList.traverse();
+
+      await signer3.approve(await account1.getAddress(), amount);
+      await signer2["transferFrom(address,address,uint256,bytes32,bytes32)"](
+        account3.address,
+        account1.address,
+        amount,
+        EMPTY_BYTES32,
+        votingList.getId(1500),
+      );
+
+      expect(await yarreToken._leadingPrice()).to.be.equal(500);
+      expect(await signer3.isVoting()).to.be.equal(true);
+
+      await time.increase(votingTime);
+      await signer3.stopVoting();
+
+      expect(await signer3.isVoting()).to.be.equal(false);
+      expect(await signer3.price()).to.be.equal(500);
     });
   });
 });

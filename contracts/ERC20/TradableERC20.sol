@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import { VotingERC20 } from "./VotingERC20.sol";
+import "hardhat/console.sol";
 
 contract TradableERC20 is VotingERC20 {
     uint256 public feePercentage = 1; // 0.01%
@@ -14,30 +15,51 @@ contract TradableERC20 is VotingERC20 {
         uint8 _decimals
     ) VotingERC20(_initialSupply, _initialPrice, _name, _symbol, _decimals) {}
 
+    modifier hasNotVoted() {
+        require(
+            userVote[votingId][msg.sender] == 0,
+            "Can't use this functions after voting"
+        );
+        _;
+    }
+
     // do i need event here?
     function updateVoteOnInteraction(
-        bytes32 _newId,
-        uint256 _oldAmount
+        bytes32 _prevId,
+        address _user,
+        uint256 _prevAmount,
+        uint256 _price
     ) internal {
         require(isVoting, "Voting is not started");
-        require(userVote[votingId][msg.sender] != 0, "User has not voted yet");
+        require(userVote[votingId][_user] != 0, "User has not voted yet");
 
-        uint256 price = userVote[votingId][msg.sender];
-        uint256 newAmount = _balances[msg.sender];
+        uint256 newAmount = _balances[_user];
 
-        bytes32 oldId = votingList.getId(price);
+        bytes32 oldId = votingList.getId(_price);
         uint256 oldListAmount = votingList.getById(oldId).amount;
 
         votingList.deleteNode(oldId);
 
+        // console.log(_price, oldListAmount, _prevAmount, newAmount);
+
+        // console.logBytes32(oldId);
+        // console.logUint(price);
+        // console.logUint(oldListAmount - oldAmount + _newAmount);
+
         votingList.insert(
-            _newId,
-            price,
-            oldListAmount - _oldAmount + newAmount
+            _prevId,
+            _price,
+            oldListAmount - _prevAmount + newAmount
         );
+
+        if (votingList.getTail() == votingList.getId(_price)) {
+            _leadingPrice = _price;
+        } else {
+            _leadingPrice = votingList.getById(votingList.getTail()).price;
+        }
     }
 
-    function buy() public payable {
+    function buy() public payable hasNotVoted {
         require(msg.value > 0, "Ether value must be greater than 0");
 
         uint256 amount = msg.value * price;
@@ -50,6 +72,47 @@ contract TradableERC20 is VotingERC20 {
 
         _mint(msg.sender, amount - fee);
         _mint(address(this), fee);
+    }
+
+    function sell(uint256 _amount) public hasNotVoted {
+        require(_amount > 0, "Amount must be greater than 0");
+        require(_amount <= _balances[msg.sender], "Insufficient balance");
+
+        uint256 fee = (_amount * feePercentage) / 10000;
+        uint256 value = (_amount - fee) / price;
+
+        transferFrom(msg.sender, address(this), _amount);
+        _burn(address(this), _amount - fee);
+
+        payable(msg.sender).transfer(value);
+    }
+
+    function transfer(
+        address _to,
+        uint256 _value
+    ) public override hasNotVoted returns (bool) {
+        bool result = super.transfer(_to, _value);
+
+        return result;
+    }
+
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public override hasNotVoted returns (bool) {
+        bool result = super.transferFrom(_from, _to, _value);
+
+        return result;
+    }
+
+    function approve(
+        address _spender,
+        uint256 _value
+    ) public override returns (bool) {
+        bool result = super.approve(_spender, _value);
+
+        return result;
     }
 
     function buy(bytes32 _id) public payable {
@@ -63,23 +126,25 @@ contract TradableERC20 is VotingERC20 {
             "You can't buy such a small amount of tokens"
         );
 
-        updateVoteOnInteraction(_id, _balances[msg.sender]);
-
         _mint(msg.sender, amount - fee);
         _mint(address(this), fee);
+
+        updateVoteOnInteraction(
+            _id,
+            msg.sender,
+            _balances[msg.sender] - (amount - fee),
+            userVote[votingId][msg.sender]
+        );
     }
 
-    function sell(uint256 _amount) public {
-        require(_amount > 0, "Amount must be greater than 0");
-        require(_amount <= _balances[msg.sender], "Insufficient balance");
+    function transferFromInternal(
+        address _from,
+        address _to,
+        uint256 _value
+    ) internal returns (bool) {
+        bool result = super.transferFrom(_from, _to, _value);
 
-        uint256 fee = (_amount * feePercentage) / 10000;
-        uint256 value = (_amount - fee) / price;
-
-        transferFrom(msg.sender, address(this), _amount);
-        _burn(address(this), _amount - fee);
-
-        payable(msg.sender).transfer(value);
+        return result;
     }
 
     function sell(uint256 _amount, bytes32 _id) public {
@@ -89,55 +154,77 @@ contract TradableERC20 is VotingERC20 {
         uint256 fee = (_amount * feePercentage) / 10000;
         uint256 value = (_amount - fee) / price;
 
-        updateVoteOnInteraction(_id, _balances[msg.sender]);
-
-        transferFrom(msg.sender, address(this), _amount);
+        transferFromInternal(msg.sender, address(this), _amount);
         _burn(address(this), _amount - fee);
 
         payable(msg.sender).transfer(value);
-    }
 
-    function transfer(
-        address _to,
-        uint256 _value
-    ) public override returns (bool) {
-        bool result = super.transfer(_to, _value);
-
-        return result;
+        updateVoteOnInteraction(
+            _id,
+            msg.sender,
+            _balances[msg.sender] + _amount,
+            userVote[votingId][msg.sender]
+        );
     }
 
     function transfer(
         address _to,
         uint256 _value,
-        bytes32 _id
+        bytes32 _id1,
+        bytes32 _id2
     ) public returns (bool) {
         bool result = super.transfer(_to, _value);
 
         if (result) {
-            updateVoteOnInteraction(_id, _balances[msg.sender]);
+            updateVoteOnInteraction(
+                _id1,
+                msg.sender,
+                _balances[msg.sender] + _value,
+                userVote[votingId][msg.sender]
+            );
+
+            if (userVote[votingId][_to] != 0) {
+                updateVoteOnInteraction(
+                    _id2,
+                    _to,
+                    _balances[_to] - _value,
+                    userVote[votingId][_to]
+                );
+            }
         }
 
         return result;
     }
 
-    function approve(
-        address _spender,
-        uint256 _value
-    ) public override returns (bool) {
-        bool result = super.approve(_spender, _value);
-
-        return result;
-    }
-
-    function approve(
-        address _spender,
+    function transferFrom(
+        address _from,
+        address _to,
         uint256 _value,
-        bytes32 _id
+        bytes32 _id1,
+        bytes32 _id2
     ) public returns (bool) {
-        bool result = super.approve(_spender, _value);
+        bool result = super.transferFrom(_from, _to, _value);
+
+        // console.log("->>", _value);
+        // console.log("->>", _balances[_from]);
+        // console.log("->>", _balances[_to]);
 
         if (result) {
-            updateVoteOnInteraction(_id, _balances[msg.sender]);
+            updateVoteOnInteraction(
+                _id1,
+                _from,
+                _balances[_from] + _value,
+                userVote[votingId][_from]
+            );
+
+            if (userVote[votingId][_to] != 0) {
+                updateVoteOnInteraction(
+                    _id2,
+                    _to,
+                    _balances[_to] - _value,
+                    userVote[votingId][_to]
+                );
+            }
         }
 
         return result;

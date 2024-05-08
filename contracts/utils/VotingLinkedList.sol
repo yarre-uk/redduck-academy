@@ -61,6 +61,29 @@ contract VotingLinkedList {
         length++;
     }
 
+    function pushStart(uint price, uint amount) public {
+        bytes32 id = getId(price);
+        Data memory newData = Data(price, amount);
+        Node memory newObject = Node(bytes32(0), newData, head);
+
+        // console.log(amount, getById(head).amount);
+
+        require(
+            amount < getById(head).amount,
+            "Amount must be less than the head's amount"
+        );
+
+        if (tail == bytes32(0)) {
+            tail = id;
+        } else {
+            objects[head].previous = id;
+        }
+
+        head = id;
+        objects[id] = newObject;
+        length++;
+    }
+
     function insert(bytes32 _prevId, uint256 _price, uint256 _amount) public {
         require(head != bytes32(0), "List is empty");
 
@@ -71,12 +94,19 @@ contract VotingLinkedList {
         //     objects[objects[_prevId].next].data.amount
         // );
 
+        if (_prevId == bytes32(0)) {
+            pushStart(_price, _amount);
+            return;
+        }
+
         require(
-            _amount > objects[_prevId].data.amount,
+            _amount > objects[_prevId].data.amount ||
+                objects[_prevId].previous == bytes32(0),
             "Amount must be greater than the previous node's amount"
         );
         require(
-            _amount < objects[objects[_prevId].next].data.amount,
+            _amount < objects[objects[_prevId].next].data.amount ||
+                objects[_prevId].next == bytes32(0),
             "Amount must be less than the next node's amount"
         );
 
@@ -86,6 +116,10 @@ contract VotingLinkedList {
 
         if (objects[_prevId].next == bytes32(0)) {
             tail = id;
+        }
+        if (_prevId == bytes32(0)) {
+            newObject.next = head;
+            head = id;
         } else {
             objects[objects[_prevId].next].previous = id;
         }

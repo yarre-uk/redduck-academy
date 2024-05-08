@@ -46,14 +46,16 @@
 | **TradableERC20** | Implementation | VotingERC20 |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VotingERC20 |
 | └ | updateVoteOnInteraction | Internal 🔒 | 🛑  | |
+| └ | buy | Public ❗️ |  💵 | hasNotVoted |
+| └ | sell | Public ❗️ | 🛑  | hasNotVoted |
+| └ | transfer | Public ❗️ | 🛑  | hasNotVoted |
+| └ | transferFrom | Public ❗️ | 🛑  | hasNotVoted |
+| └ | approve | Public ❗️ | 🛑  |NO❗️ |
 | └ | buy | Public ❗️ |  💵 |NO❗️ |
-| └ | buy | Public ❗️ |  💵 |NO❗️ |
-| └ | sell | Public ❗️ | 🛑  |NO❗️ |
+| └ | transferFromInternal | Internal 🔒 | 🛑  | |
 | └ | sell | Public ❗️ | 🛑  |NO❗️ |
 | └ | transfer | Public ❗️ | 🛑  |NO❗️ |
-| └ | transfer | Public ❗️ | 🛑  |NO❗️ |
-| └ | approve | Public ❗️ | 🛑  |NO❗️ |
-| └ | approve | Public ❗️ | 🛑  |NO❗️ |
+| └ | transferFrom | Public ❗️ | 🛑  |NO❗️ |
 | └ | setFeePercentage | Public ❗️ | 🛑  | onlyOwner |
 | └ | collectAndBurnFee | Public ❗️ | 🛑  | onlyOwner |
 | └ | getFeeBalance | Public ❗️ |   | onlyOwner |
@@ -83,6 +85,7 @@
 | └ | getTail | Public ❗️ |   |NO❗️ |
 | └ | getId | Public ❗️ |   |NO❗️ |
 | └ | push | Public ❗️ | 🛑  |NO❗️ |
+| └ | pushStart | Public ❗️ | 🛑  |NO❗️ |
 | └ | insert | Public ❗️ | 🛑  |NO❗️ |
 | └ | deleteNode | Public ❗️ | 🛑  |NO❗️ |
 | └ | clear | Public ❗️ | 🛑  |NO❗️ |
