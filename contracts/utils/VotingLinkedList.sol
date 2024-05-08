@@ -4,8 +4,8 @@ pragma solidity 0.8.24;
 import "hardhat/console.sol";
 
 struct Data {
-    uint price;
-    uint amount;
+    uint256 price;
+    uint256 amount;
 }
 
 struct Node {
@@ -15,9 +15,9 @@ struct Node {
 }
 
 contract VotingLinkedList {
-    event AddEntry(bytes32 head, uint number, bytes32 name, bytes32 next);
+    event AddEntry(bytes32 head, uint256 number, bytes32 name, bytes32 next);
 
-    uint public length = 0;
+    uint256 public length = 0;
 
     bytes32 public head;
     bytes32 public tail;
@@ -36,17 +36,20 @@ contract VotingLinkedList {
         return tail;
     }
 
-    function getId(uint _price) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_price));
+    function getId(
+        uint256 _votingId,
+        uint256 _price
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_votingId, _price));
     }
 
-    function push(uint price, uint amount) public {
-        bytes32 id = getId(price);
-        Data memory newData = Data(price, amount);
+    function push(uint256 _votingId, uint256 _price, uint256 _amount) public {
+        bytes32 id = getId(_votingId, _price);
+        Data memory newData = Data(_price, _amount);
         Node memory newObject = Node(tail, newData, bytes32(0));
 
         require(
-            amount > getById(tail).amount,
+            _amount > getById(tail).amount,
             "Amount must be greater than the previous node's amount"
         );
 
@@ -61,9 +64,13 @@ contract VotingLinkedList {
         length++;
     }
 
-    function pushStart(uint price, uint amount) public {
-        bytes32 id = getId(price);
-        Data memory newData = Data(price, amount);
+    function pushStart(
+        uint256 _votingId,
+        uint256 _price,
+        uint256 amount
+    ) public {
+        bytes32 id = getId(_votingId, _price);
+        Data memory newData = Data(_price, amount);
         Node memory newObject = Node(bytes32(0), newData, head);
 
         // console.log(amount, getById(head).amount);
@@ -84,7 +91,12 @@ contract VotingLinkedList {
         length++;
     }
 
-    function insert(bytes32 _prevId, uint256 _price, uint256 _amount) public {
+    function insert(
+        uint256 _votingId,
+        bytes32 _prevId,
+        uint256 _price,
+        uint256 _amount
+    ) public {
         require(head != bytes32(0), "List is empty");
 
         // console.logBytes32(_prevId);
@@ -95,7 +107,7 @@ contract VotingLinkedList {
         // );
 
         if (_prevId == bytes32(0)) {
-            pushStart(_price, _amount);
+            pushStart(_votingId, _price, _amount);
             return;
         }
 
@@ -110,7 +122,7 @@ contract VotingLinkedList {
             "Amount must be less than the next node's amount"
         );
 
-        bytes32 id = getId(_price);
+        bytes32 id = getId(_votingId, _price);
         Data memory newData = Data(_price, _amount);
         Node memory newObject = Node(_prevId, newData, objects[_prevId].next);
 
@@ -156,7 +168,7 @@ contract VotingLinkedList {
 
     function traverse() public view {
         bytes32 current = head;
-        uint i = 0;
+        uint256 i = 0;
 
         while (current != bytes32(0)) {
             console.log("Node ", i);

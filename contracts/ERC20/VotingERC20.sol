@@ -54,8 +54,8 @@ contract VotingERC20 is BaseERC20 {
         uint256 _amount,
         bytes32 _id
     ) internal {
-        bytes32 checkId = votingList.getId(_price);
-        bytes32 leadingId = votingList.getId(_leadingPrice);
+        bytes32 checkId = votingList.getId(votingId, _price);
+        bytes32 leadingId = votingList.getId(votingId, _leadingPrice);
 
         require(
             leadingId == votingList.getTail() || _leadingPrice == 0,
@@ -69,10 +69,10 @@ contract VotingERC20 is BaseERC20 {
         }
 
         if (_id == leadingId || _id == bytes32(0)) {
-            votingList.push(_price, _amount);
+            votingList.push(votingId, _price, _amount);
             _leadingPrice = _price;
         } else {
-            votingList.insert(_id, _price, _amount);
+            votingList.insert(votingId, _id, _price, _amount);
 
             if (votingList.getTail() == checkId) {
                 _leadingPrice = _price;

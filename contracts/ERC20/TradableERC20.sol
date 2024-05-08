@@ -35,7 +35,7 @@ contract TradableERC20 is VotingERC20 {
 
         uint256 newAmount = _balances[_user];
 
-        bytes32 oldId = votingList.getId(_price);
+        bytes32 oldId = votingList.getId(votingId, _price);
         uint256 oldListAmount = votingList.getById(oldId).amount;
 
         votingList.deleteNode(oldId);
@@ -47,12 +47,13 @@ contract TradableERC20 is VotingERC20 {
         // console.logUint(oldListAmount - oldAmount + _newAmount);
 
         votingList.insert(
+            votingId,
             _prevId,
             _price,
             oldListAmount - _prevAmount + newAmount
         );
 
-        if (votingList.getTail() == votingList.getId(_price)) {
+        if (votingList.getTail() == votingList.getId(votingId, _price)) {
             _leadingPrice = _price;
         } else {
             _leadingPrice = votingList.getById(votingList.getTail()).price;
