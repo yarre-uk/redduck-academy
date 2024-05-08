@@ -11,7 +11,7 @@ import {
 } from "../typechain-types";
 import MerkleTree from "../utils/merkle";
 
-const ACCOUNT_NUMBER = 10;
+const ACCOUNT_NUMBER = 100;
 
 describe("Vesting", async () => {
   async function deploy() {
@@ -81,7 +81,7 @@ describe("Vesting", async () => {
 
     await Promise.all(promises);
 
-    console.log("---");
+    // console.log("---");
 
     await time.increase(60 * 60 * 24 * 365 * 2);
 
@@ -118,7 +118,7 @@ describe("Vesting", async () => {
 
     await vestingContract2.setRoot(tree.getMerkleRoot());
 
-    console.log("---");
+    // console.log("---");
 
     await time.increase(60 * 60 * 24 * 365 * 2);
 

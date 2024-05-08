@@ -49,7 +49,7 @@ export class VotingLinkedList {
   //   return this.tail;
   // }
 
-  getId(votingId: number, price: number): string {
+  static getId(votingId: number, price: number): string {
     return ethers.keccak256(
       ethers.solidityPacked(["uint256", "uint256"], [votingId, price]),
     );

@@ -81,6 +81,7 @@
 ||||||
 | **VotingLinkedList** | Implementation |  |||
 | └ | getById | Public ❗️ |   |NO❗️ |
+| └ | isNotEmpty | Public ❗️ |   |NO❗️ |
 | └ | getHead | Public ❗️ |   |NO❗️ |
 | └ | getTail | Public ❗️ |   |NO❗️ |
 | └ | getId | Public ❗️ |   |NO❗️ |

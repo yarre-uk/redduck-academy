@@ -28,6 +28,10 @@ contract VotingLinkedList {
         return objects[id].data;
     }
 
+    function isNotEmpty(bytes32 id) public view returns (bool) {
+        return objects[id].data.price != 0;
+    }
+
     function getHead() public view returns (bytes32) {
         return head;
     }
@@ -47,6 +51,8 @@ contract VotingLinkedList {
         bytes32 id = getId(_votingId, _price);
         Data memory newData = Data(_price, _amount);
         Node memory newObject = Node(tail, newData, bytes32(0));
+
+        // console.log(_amount, getById(tail).amount);
 
         require(
             _amount > getById(tail).amount,
@@ -163,6 +169,7 @@ contract VotingLinkedList {
     function clear() public {
         head = bytes32(0);
         tail = bytes32(0);
+        delete objects[bytes32(0)];
         length = 0;
     }
 

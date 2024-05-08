@@ -69,9 +69,11 @@ contract VotingERC20 is BaseERC20 {
         }
 
         if (_id == leadingId || _id == bytes32(0)) {
+            // console.log("push", _leadingPrice, _price, _amount);
             votingList.push(votingId, _price, _amount);
             _leadingPrice = _price;
         } else {
+            // console.log("insert", _leadingPrice, _price, _amount);
             votingList.insert(votingId, _id, _price, _amount);
 
             if (votingList.getTail() == checkId) {
@@ -132,8 +134,10 @@ contract VotingERC20 is BaseERC20 {
         }
 
         require(isVoting, "Voting is not started");
-        //TODO fix
-        // require(votes[votingId][_price] > 0, "Price is not in the voting list");
+        require(
+            votingList.isNotEmpty(votingList.getId(votingId, _price)),
+            "Price is not in the voting list"
+        );
 
         userVote[votingId][msg.sender] = _price;
 
