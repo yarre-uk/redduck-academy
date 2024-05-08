@@ -5,9 +5,10 @@ import { VotingLinkedList, Data } from "../utils/VotingLinkedList.sol";
 import { BaseERC20 } from "./BaseERC20.sol";
 import "hardhat/console.sol";
 
-contract VotingERC20 is BaseERC20 {
+contract VotingERC20 is BaseERC20, VotingLinkedList {
     uint256 private _voteForExistingTokenAmount = 5; // 0.05% of total supply
     uint256 private _voteForNewTokenAmount = 10; // 0.1% of total supply
+    // must be private
     uint256 public _leadingPrice = 0;
 
     uint256 public constant TIME_TO_VOTE = 1 days;
@@ -17,7 +18,6 @@ contract VotingERC20 is BaseERC20 {
     uint256 public votingId;
     mapping(uint256 => mapping(address => uint256)) public userVote;
     uint256 public price;
-    VotingLinkedList public votingList;
 
     event VotingStarted(
         address indexed _address,
@@ -54,32 +54,32 @@ contract VotingERC20 is BaseERC20 {
         uint256 _amount,
         bytes32 _id
     ) internal {
-        bytes32 checkId = votingList.getId(votingId, _price);
-        bytes32 leadingId = votingList.getId(votingId, _leadingPrice);
+        bytes32 checkId = getId(votingId, _price);
+        bytes32 leadingId = getId(votingId, _leadingPrice);
 
         require(
-            leadingId == votingList.getTail() || _leadingPrice == 0,
+            leadingId == getTail() || _leadingPrice == 0,
             "Leading price is not the tail"
         );
 
-        Data memory data = votingList.getById(checkId);
+        Data memory data = getById(checkId);
 
         if (data.price == _price) {
-            votingList.deleteNode(checkId);
+            deleteNode(checkId);
         }
 
         if (_id == leadingId || _id == bytes32(0)) {
             // console.log("push", _leadingPrice, _price, _amount);
-            votingList.push(votingId, _price, _amount);
+            push(votingId, _price, _amount);
             _leadingPrice = _price;
         } else {
             // console.log("insert", _leadingPrice, _price, _amount);
-            votingList.insert(votingId, _id, _price, _amount);
+            insert(votingId, _id, _price, _amount);
 
-            if (votingList.getTail() == checkId) {
+            if (getTail() == checkId) {
                 _leadingPrice = _price;
             } else {
-                _leadingPrice = votingList.getById(votingList.getTail()).price;
+                _leadingPrice = getById(getTail()).price;
             }
         }
     }
@@ -95,8 +95,8 @@ contract VotingERC20 is BaseERC20 {
             "Voting time hasn't passed"
         );
 
-        bytes32 tail = votingList.getTail();
-        Data memory data = votingList.getById(tail);
+        bytes32 tail = getTail();
+        Data memory data = getById(tail);
 
         require(data.price == _leadingPrice, "Leading price is not the tail");
 
@@ -105,7 +105,7 @@ contract VotingERC20 is BaseERC20 {
         _leadingPrice = 0;
         voteStartTime = 0;
         votingId++;
-        votingList.clear();
+        clear();
         emit VotingEnded(votingId, price);
     }
 
@@ -135,7 +135,7 @@ contract VotingERC20 is BaseERC20 {
 
         require(isVoting, "Voting is not started");
         require(
-            votingList.isNotEmpty(votingList.getId(votingId, _price)),
+            isNotEmpty(getId(votingId, _price)),
             "Price is not in the voting list"
         );
 
@@ -148,9 +148,5 @@ contract VotingERC20 is BaseERC20 {
 
     receive() external payable {
         revert("Ether not accepted");
-    }
-
-    function setVotingList(address _votingList) public onlyOwner {
-        votingList = VotingLinkedList(_votingList);
     }
 }

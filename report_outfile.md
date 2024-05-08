@@ -62,7 +62,7 @@
 | └ | withdrawBalanceAmount | Public ❗️ | 🛑  | onlyOwner |
 | └ | withdrawBalance | Public ❗️ | 🛑  | onlyOwner |
 ||||||
-| **VotingERC20** | Implementation | BaseERC20 |||
+| **VotingERC20** | Implementation | BaseERC20, VotingLinkedList |||
 | └ | <Constructor> | Public ❗️ | 🛑  | BaseERC20 |
 | └ | _ownsMoreThan | Internal 🔒 |   | |
 | └ | _startVoting | Internal 🔒 | 🛑  | |
@@ -71,7 +71,6 @@
 | └ | stopVoting | Public ❗️ | 🛑  |NO❗️ |
 | └ | vote | Public ❗️ | 🛑  |NO❗️ |
 | └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
-| └ | setVotingList | Public ❗️ | 🛑  | onlyOwner |
 ||||||
 | **Merkle** | Implementation |  |||
 | └ | checkProof | Public ❗️ |   |NO❗️ |

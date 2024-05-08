@@ -29,8 +29,6 @@ describe("YarreToken", async () => {
       owner,
     ).deploy();
 
-    await yarreToken.setVotingList(votingContractList.getAddress());
-
     expect(await yarreToken.balanceOf(owner.address)).to.equal(
       ethers.parseEther("10000"),
     );

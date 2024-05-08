@@ -30,6 +30,7 @@ contract Vesting3 is Ownable {
         require(token.balanceOf(address(this)) > 0, "No tokens to claim");
         require(!usedNonces[_nonce], "You have already claimed");
 
+        //chain id
         bytes32 message = keccak256(
             abi.encodePacked(msg.sender, _amount, _nonce, address(this))
         );
