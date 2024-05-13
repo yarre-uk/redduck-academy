@@ -2,10 +2,7 @@ import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-import {
-  VotingLinkedList__factory,
-  YarreToken__factory,
-} from "../typechain-types";
+import { YarreToken__factory } from "../typechain-types";
 import { EMPTY_BYTES32, VotingLinkedList } from "../utils/list";
 
 describe("Improved Voting", async () => {
@@ -24,10 +21,6 @@ describe("Improved Voting", async () => {
       initialPrice,
     );
 
-    const votingContractList = await new VotingLinkedList__factory(
-      owner,
-    ).deploy();
-
     expect(await yarreToken.balanceOf(owner.address)).to.equal(
       ethers.parseEther("10000"),
     );
@@ -44,7 +37,6 @@ describe("Improved Voting", async () => {
       baseVoteAmount,
       premiumVoteAmount,
       votingTime,
-      votingContractList,
     };
   }
 
@@ -403,7 +395,6 @@ describe("Improved Voting", async () => {
           premiumVoteAmount,
           votingTime,
           initialPrice,
-          votingContractList,
         } = await loadFixture(deploy);
 
         const signer1 = yarreToken.connect(account1);
@@ -479,7 +470,6 @@ describe("Improved Voting", async () => {
           premiumVoteAmount,
           votingTime,
           initialPrice,
-          votingContractList,
         } = await loadFixture(deploy);
 
         const signer1 = yarreToken.connect(account1);

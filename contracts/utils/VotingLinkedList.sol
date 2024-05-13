@@ -52,7 +52,7 @@ contract VotingLinkedList {
         Data memory newData = Data(_price, _amount);
         Node memory newObject = Node(tail, newData, bytes32(0));
 
-        // console.log(_amount, getById(tail).amount);
+        // console.log("push", _amount, ">", getById(tail).amount);
 
         require(
             _amount > getById(tail).amount,

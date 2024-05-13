@@ -1,8 +1,11 @@
+import fc from "fast-check";
 import { type HardhatUserConfig } from "hardhat/config";
 
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-verify";
 import { ETHERSCAN_API_KEY, INFURA_API_KEY, PRIVATE_KEY } from "./env";
+
+fc.configureGlobal({ numRuns: 1000, verbose: true });
 
 const config: HardhatUserConfig = {
   solidity: "0.8.24",

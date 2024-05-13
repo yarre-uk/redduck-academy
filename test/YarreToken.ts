@@ -3,10 +3,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 
 // eslint-disable-next-line camelcase
-import {
-  VotingLinkedList__factory,
-  YarreToken__factory,
-} from "../typechain-types";
+import { YarreToken__factory } from "../typechain-types";
 import { EMPTY_BYTES32 } from "../utils/list";
 
 describe("YarreToken", async () => {
@@ -25,10 +22,6 @@ describe("YarreToken", async () => {
       initialPrice,
     );
 
-    const votingContractList = await new VotingLinkedList__factory(
-      owner,
-    ).deploy();
-
     expect(await yarreToken.balanceOf(owner.address)).to.equal(
       ethers.parseEther("10000"),
     );
@@ -45,7 +38,6 @@ describe("YarreToken", async () => {
       baseVoteAmount,
       premiumVoteAmount,
       votingTime,
-      votingContractList,
     };
   }
 
