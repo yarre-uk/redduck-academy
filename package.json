@@ -67,6 +67,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",
+    "@uniswap/v3-periphery": "^1.4.4",
     "keccak256": "^1.0.6"
   }
 }

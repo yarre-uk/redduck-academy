@@ -10,6 +10,7 @@
 | contracts/ERC20/TradableERC20.sol | [object Promise] |
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
 | contracts/ERC20/YarreToken.sol | [object Promise] |
+| contracts/utils/DepositStorage.sol | [object Promise] |
 | contracts/utils/Merkle.sol | [object Promise] |
 | contracts/utils/Ownable.sol | [object Promise] |
 
@@ -64,6 +65,12 @@
 ||||||
 | **YarreToken** | Implementation | TradableERC20 |||
 | └ | <Constructor> | Public ❗️ | 🛑  | TradableERC20 |
+||||||
+| **DepositStorage** | Implementation | Ownable |||
+| └ | getId | Public ❗️ |   |NO❗️ |
+| └ | isEmpty | Public ❗️ |   |NO❗️ |
+| └ | addNode | Public ❗️ | 🛑  |NO❗️ |
+| └ | setPoolFee | Public ❗️ | 🛑  | onlyOwner |
 ||||||
 | **Merkle** | Implementation |  |||
 | └ | checkProof | Public ❗️ |   |NO❗️ |
