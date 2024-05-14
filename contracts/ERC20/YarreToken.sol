@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { TradableERC20 } from "./ERC20/TradableERC20.sol";
+import { TradableERC20 } from "./TradableERC20.sol";
 
 contract YarreToken is TradableERC20 {
     /**
