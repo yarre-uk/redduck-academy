@@ -2,6 +2,7 @@
   "name": "redduck-academy",
   "author": "Yaroslav Syvukha",
   "scripts": {
+    "h": "hardhat",
     "clean": "hardhat clean",
     "compile": "hardhat compile",
     "cc": "hardhat clean & hardhat compile",
@@ -24,6 +25,7 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@chainlink/contracts": "^1.1.0",
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
     "@nomicfoundation/hardhat-ignition": "^0.15.0",
@@ -67,6 +69,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
     "@uniswap/v3-periphery": "^1.4.4",
     "keccak256": "^1.0.6"
   }

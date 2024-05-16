@@ -11,6 +11,12 @@ const config: HardhatUserConfig = {
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
       accounts: [PRIVATE_KEY],
     },
+    hardhat: {
+      forking: {
+        url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
+        blockNumber: 19882958,
+      },
+    },
   },
   sourcify: {
     enabled: true,
