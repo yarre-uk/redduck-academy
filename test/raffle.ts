@@ -6,17 +6,8 @@ import { Raffle__factory } from "../typechain-types";
 
 describe("Raffle", () => {
   const deploy = async () => {
-    const sendETH = async (recipient: string, amount: bigint) => {
-      const transaction = {
-        to: recipient,
-        value: amount,
-      };
-
-      const tx = await owner.sendTransaction(transaction);
-      return tx;
-    };
-
-    const [owner] = await ethers.getSigners();
+    const [owner, accountWeth, accountUsdt, accountUsdc, accountLink] =
+      await ethers.getSigners();
 
     const uniswapV3Router = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 
@@ -45,10 +36,25 @@ describe("Raffle", () => {
     const usdcUser = await ethers.getImpersonatedSigner(usdcHolder);
     const linkUser = await ethers.getImpersonatedSigner(linkHolder);
 
+    const sendETH = async (recipient: string, amount: bigint) => {
+      const transaction = {
+        to: recipient,
+        value: amount,
+      };
+
+      const tx = await owner.sendTransaction(transaction);
+      return tx;
+    };
+
     await sendETH(await wethUser.getAddress(), ethers.parseEther("1000"));
     await sendETH(await usdtUser.getAddress(), ethers.parseEther("1000"));
     await sendETH(await usdcUser.getAddress(), ethers.parseEther("1000"));
     await sendETH(await linkUser.getAddress(), ethers.parseEther("1000"));
+
+    await wethContract.connect(wethUser).transfer(accountWeth.address, 10000n);
+    await usdtContract.connect(usdtUser).transfer(accountUsdt.address, 10000n);
+    await usdcContract.connect(usdcUser).transfer(accountUsdc.address, 10000n);
+    await linkContract.connect(linkUser).transfer(accountLink.address, 10000n);
 
     const whitelist = [weth, usdt, usdc, link];
     const aggregators = [wethOracle, usdtOracle, usdcOracle, linkOracle];
@@ -65,12 +71,10 @@ describe("Raffle", () => {
       usdtContract,
       usdcContract,
       linkContract,
-      wethUser,
-      usdtUser,
-      usdcUser,
-      linkUser,
-      whitelist,
-      aggregators,
+      accountWeth,
+      accountUsdt,
+      accountUsdc,
+      accountLink,
     };
   };
 
@@ -82,30 +86,89 @@ describe("Raffle", () => {
     });
   });
 
+  // it("Price feed test", async () => {
+  //   const { contract } = await loadFixture(deploy);
+
+  //   console.log(await contract.getLatestPrice(0));
+  //   console.log(await contract.getLatestPrice(1));
+  //   console.log(await contract.getLatestPrice(2));
+  //   console.log(await contract.getLatestPrice(3));
+  // });
+
   describe("Raffle", () => {
-    it("First", async () => {
-      const { contract, usdcContract, usdcUser } = await loadFixture(deploy);
+    it("Should deposit once", async () => {
+      const { contract, usdcContract, accountUsdc } = await loadFixture(deploy);
 
-      console.log(await usdcContract.balanceOf(await usdcUser.getAddress()));
-
-      const usdcSigner = contract.connect(usdcUser);
+      const usdcSigner = contract.connect(accountUsdc);
 
       await usdcContract
-        .connect(usdcUser)
+        .connect(accountUsdc)
         .approve(contract.getAddress(), 1000n);
 
       await usdcSigner.deposit(1000n, 2);
 
-      // console.log(await contract.pool());
+      expect(await contract.pool()).to.equal(997n);
     });
 
-    // it("Second", async () => {
-    //   const { contract, aggregators } = await loadFixture(deploy);
+    it("Should deposit twice", async () => {
+      const { contract, usdcContract, accountUsdc, usdtContract, accountUsdt } =
+        await loadFixture(deploy);
 
-    //   console.log(await contract.getLatestPrice(0));
-    //   console.log(await contract.getLatestPrice(1));
-    //   console.log(await contract.getLatestPrice(2));
-    //   console.log(await contract.getLatestPrice(3));
-    // });
+      const usdcSigner = contract.connect(accountUsdc);
+      const usdtSigner = contract.connect(accountUsdt);
+
+      await usdcContract
+        .connect(accountUsdc)
+        .approve(contract.getAddress(), 1000n);
+      await usdcSigner.deposit(1000n, 2);
+
+      await usdtContract
+        .connect(accountUsdt)
+        .approve(contract.getAddress(), 1000n);
+      await usdtSigner.deposit(1000n, 1);
+
+      expect(await contract.pool()).to.equal(1997n);
+    });
+
+    it("Should win", async () => {
+      const { contract, usdcContract, accountUsdc, usdtContract, accountUsdt } =
+        await loadFixture(deploy);
+
+      console.log(await usdtContract.balanceOf(accountUsdt.address));
+      console.log(await usdtContract.balanceOf(contract.getAddress()));
+
+      const usdcSigner = contract.connect(accountUsdc);
+      const usdtSigner = contract.connect(accountUsdt);
+
+      await usdtContract
+        .connect(accountUsdt)
+        .approve(contract.getAddress(), 2000n);
+      await usdtSigner.deposit(2000n, 1);
+
+      await usdcContract
+        .connect(accountUsdc)
+        .approve(contract.getAddress(), 1000n);
+      await usdcSigner.deposit(1000n, 2);
+
+      const resp = (
+        await contract.queryFilter(contract.filters.Deposited())
+      ).map(({ args }) => {
+        return {
+          id: args.id,
+          deposit: args.deposit,
+        };
+      });
+
+      const preBalance = await usdtContract.balanceOf(accountUsdt.address);
+
+      await contract.endRaffle(resp[0].id, resp[1].id, 500n);
+
+      expect(await contract.pool()).to.equal(0n);
+      expect(await usdtContract.balanceOf(accountUsdt.address)).to.equal(
+        preBalance + 2997n,
+      );
+
+      // expect(await contract.pool()).to.equal(994n);
+    });
   });
 });

@@ -9,6 +9,7 @@ import { DepositStorage } from "./utils/DepositStorage.sol";
 import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import "hardhat/console.sol";
 
+//TODO non reentrant
 contract Raffle is DepositStorage {
     address[] internal whitelist;
     address[] internal priceFeedOracles;
@@ -28,15 +29,12 @@ contract Raffle is DepositStorage {
     }
 
     //TODO permit
-    function deposit(
-        uint256 _amount,
-        uint256 _tokenIndex
-    ) public returns (uint256 deposited) {
+    function deposit(uint256 _amount, uint256 _tokenIndex) public {
         require(whitelist[_tokenIndex] != address(0), "Wrong token index");
 
-        if (whitelist[_tokenIndex] != USDT) {
-            console.log(_amount, whitelist[_tokenIndex]);
+        uint256 deposited;
 
+        if (whitelist[_tokenIndex] != USDT) {
             TransferHelper.safeTransferFrom(
                 whitelist[_tokenIndex],
                 msg.sender,
@@ -60,14 +58,16 @@ contract Raffle is DepositStorage {
                     tokenIn: whitelist[_tokenIndex],
                     tokenOut: USDT,
                     fee: poolFee,
-                    recipient: msg.sender,
+                    recipient: address(this),
                     deadline: block.timestamp,
                     amountIn: _amount,
                     amountOutMinimum: minPrice,
+                    //????
                     sqrtPriceLimitX96: 0
                 });
 
             deposited = uniswapRouter.exactInputSingle(params);
+            // console.log("Deposited 1: ", deposited);
         } else {
             TransferHelper.safeTransferFrom(
                 USDT,
@@ -76,6 +76,7 @@ contract Raffle is DepositStorage {
                 _amount
             );
             deposited = _amount;
+            // console.log("Deposited 2: ", deposited);
         }
 
         pool += deposited;
@@ -84,7 +85,7 @@ contract Raffle is DepositStorage {
             raffleId: raffleId,
             sender: msg.sender,
             amount: deposited,
-            point: 0,
+            point: pool - deposited,
             prevDeposit: lastDepositId
         });
 
@@ -93,17 +94,18 @@ contract Raffle is DepositStorage {
 
     function endRaffle(
         bytes32 depositId,
-        bytes32 nextDepositId
+        bytes32 nextDepositId,
+        uint256 random
     ) public onlyOwner {
         //TODO use chainLink VRF
-        uint256 random = uint256(
-            keccak256(
-                abi.encodePacked(block.timestamp, depositId, nextDepositId)
-            )
-        ) % pool;
+        // uint256 random = uint256(
+        //     keccak256(
+        //         abi.encodePacked(block.timestamp, depositId, nextDepositId)
+        //     )
+        // ) % pool;
 
-        Deposit storage depositNode = deposits[depositId];
-        Deposit storage nextDepositNode = deposits[nextDepositId];
+        Deposit memory depositNode = deposits[depositId];
+        Deposit memory nextDepositNode = deposits[nextDepositId];
 
         require(!isEmpty(depositId), "Deposit not found");
         require(!isEmpty(nextDepositId), "Next deposit not found");
@@ -125,19 +127,19 @@ contract Raffle is DepositStorage {
             depositNode.point + depositNode.amount == nextDepositNode.point,
             "Wrong order of deposits(points)"
         );
-        //TODO may have user multiple deposits??
-        require(
-            depositNode.sender != nextDepositNode.sender,
-            "Same sender, Wha???"
-        );
 
         require(
             random >= depositNode.point && random < nextDepositNode.point,
             "This user is not a winner"
         );
 
+        TransferHelper.safeTransfer(USDT, depositNode.sender, pool);
+
         raffleId++;
         lastDepositId = bytes32(0);
+        pool = 0;
+
+        console.log("Winner: ", depositNode.sender);
     }
 
     function getChance(

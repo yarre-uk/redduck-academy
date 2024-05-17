@@ -21,6 +21,7 @@ contract DepositStorage is Ownable {
     event Deposited(
         address indexed sender,
         bytes32 indexed id,
+        bytes32 indexed prevDeposit,
         Deposit deposit
     );
 
@@ -44,6 +45,10 @@ contract DepositStorage is Ownable {
     function addNode(Deposit memory _deposit) public returns (bytes32) {
         bytes32 id = getId(_deposit);
         deposits[id] = _deposit;
+        lastDepositId = id;
+
+        emit Deposited(_deposit.sender, id, _deposit.prevDeposit, _deposit);
+
         return id;
     }
 
