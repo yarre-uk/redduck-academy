@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { Ownable } from "./Ownable.sol";
+import { VRFConsumerBaseV2Plus } from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 
-contract DepositStorage is Ownable {
+abstract contract DepositStorage is VRFConsumerBaseV2Plus {
     //TODO make internal
     uint256 public pool = 0;
     mapping(bytes32 => Deposit) internal deposits;
@@ -24,6 +24,10 @@ contract DepositStorage is Ownable {
         bytes32 indexed prevDeposit,
         Deposit deposit
     );
+
+    constructor(
+        address _vrfCoordinator
+    ) VRFConsumerBaseV2Plus(_vrfCoordinator) {}
 
     function getId(Deposit memory _params) public pure returns (bytes32) {
         return

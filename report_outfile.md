@@ -11,6 +11,7 @@
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
 | contracts/ERC20/YarreToken.sol | [object Promise] |
 | contracts/interfaces/IWETH.sol | [object Promise] |
+| contracts/utils/Coordinator.sol | [object Promise] |
 | contracts/utils/DepositStorage.sol | [object Promise] |
 | contracts/utils/Merkle.sol | [object Promise] |
 | contracts/utils/Ownable.sol | [object Promise] |
@@ -74,7 +75,11 @@
 | └ | transfer | External ❗️ | 🛑  |NO❗️ |
 | └ | approve | External ❗️ | 🛑  |NO❗️ |
 ||||||
-| **DepositStorage** | Implementation | Ownable |||
+| **Coordinator** | Implementation | Raffle |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Raffle |
+||||||
+| **DepositStorage** | Implementation | VRFConsumerBaseV2Plus |||
+| └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
 | └ | getId | Public ❗️ |   |NO❗️ |
 | └ | isEmpty | Public ❗️ |   |NO❗️ |
 | └ | addNode | Public ❗️ | 🛑  |NO❗️ |
