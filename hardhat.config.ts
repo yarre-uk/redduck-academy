@@ -12,6 +12,7 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY],
     },
     hardhat: {
+      chainId: 1337,
       forking: {
         url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
         blockNumber: 19882958,

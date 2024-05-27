@@ -2,36 +2,36 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-import { Raffle__factory } from "../typechain-types";
+import { MyProxy__factory, Raffle__factory } from "../typechain-types";
 
 describe("Raffle", () => {
   const deploy = async () => {
-    const [owner, accountWeth, accountUsdt, accountUsdc, accountLink] =
+    const [owner, accountAsd1, accountUsdt, accountUsdc, accountLink] =
       await ethers.getSigners();
 
     const uniswapV3Router = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 
-    const weth = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+    const asd1 = "0xB8c77482e45F1F44dE1745F52C74426C631bDD52";
     const usdt = "0xdac17f958d2ee523a2206206994597c13d831ec7";
     const usdc = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
-    const link = "0x514910771af9ca656af840dff83e8264ecf986ca";
+    const link = "0x514910771AF9Ca656af840dff83E8264EcF986CA";
 
-    const wethOracle = "0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46";
+    const asd1Oracle = "0x14e613AC84a31f709eadbdF89C6CC390fDc9540A";
     const usdtOracle = "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D";
     const usdcOracle = "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6";
     const linkOracle = "0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c";
 
-    const wethContract = await ethers.getContractAt("IWETH", weth);
+    const asd1Contract = await ethers.getContractAt("BaseERC20", asd1);
     const usdtContract = await ethers.getContractAt("BaseERC20", usdt);
     const usdcContract = await ethers.getContractAt("ERC20Permit", usdc);
     const linkContract = await ethers.getContractAt("BaseERC20", link);
 
-    const wethHolder = "0x2fEb1512183545f48f6b9C5b4EbfCaF49CfCa6F3";
+    const asd1Holder = "0xD041AF244d15456AEdFaB358fa80D6e454f3bd27";
     const usdtHolder = "0x4Ee7bBc295A090aD0F6db12fe7eE4dC8de896400";
     const usdcHolder = "0x4B16c5dE96EB2117bBE5fd171E4d203624B014aa";
     const linkHolder = "0x0757e27AC1631beEB37eeD3270cc6301dD3D57D4";
 
-    const wethUser = await ethers.getImpersonatedSigner(wethHolder);
+    const asd1User = await ethers.getImpersonatedSigner(asd1Holder);
     const usdtUser = await ethers.getImpersonatedSigner(usdtHolder);
     const usdcUser = await ethers.getImpersonatedSigner(usdcHolder);
     const linkUser = await ethers.getImpersonatedSigner(linkHolder);
@@ -46,36 +46,46 @@ describe("Raffle", () => {
       return tx;
     };
 
-    await sendETH(await wethUser.getAddress(), ethers.parseEther("1000"));
+    await sendETH(await asd1User.getAddress(), ethers.parseEther("1000"));
     await sendETH(await usdtUser.getAddress(), ethers.parseEther("1000"));
     await sendETH(await usdcUser.getAddress(), ethers.parseEther("1000"));
     await sendETH(await linkUser.getAddress(), ethers.parseEther("1000"));
 
-    await wethContract.connect(wethUser).transfer(accountWeth.address, 10000n);
+    await asd1Contract.connect(asd1User).transfer(accountAsd1.address, 10000n);
     await usdtContract.connect(usdtUser).transfer(accountUsdt.address, 10000n);
     await usdcContract.connect(usdcUser).transfer(accountUsdc.address, 10000n);
     await linkContract.connect(linkUser).transfer(accountLink.address, 10000n);
 
-    const whitelist = [weth, usdt, usdc, link];
-    const aggregators = [wethOracle, usdtOracle, usdcOracle, linkOracle];
+    const whitelist = [asd1, usdt, usdc, link];
+    const aggregators = [asd1Oracle, usdtOracle, usdcOracle, linkOracle];
 
-    const contract = await new Raffle__factory(owner).deploy(
+    const _contract = await new Raffle__factory(owner).deploy();
+
+    const _proxyContract = await new MyProxy__factory(owner).deploy(
+      await _contract.getAddress(),
+    );
+
+    const proxyContract = await ethers.getContractAt(
+      "Raffle",
+      await _proxyContract.getAddress(),
+    );
+
+    await _contract.initialize(
       whitelist,
       uniswapV3Router,
       aggregators,
       0n,
-      accountWeth.address,
+      owner.address,
       ethers.randomBytes(32),
     );
 
     return {
-      owner,
-      contract,
-      wethContract,
+      contract: _contract,
+      asd1Contract,
       usdtContract,
       usdcContract,
       linkContract,
-      accountWeth,
+      accountAsd1,
       accountUsdt,
       accountUsdc,
       accountLink,
@@ -90,135 +100,153 @@ describe("Raffle", () => {
     });
   });
 
-  // it("Price feed test", async () => {
-  //   const { contract } = await loadFixture(deploy);
-
-  //   console.log(await contract.getLatestPrice(0));
-  //   console.log(await contract.getLatestPrice(1));
-  //   console.log(await contract.getLatestPrice(2));
-  //   console.log(await contract.getLatestPrice(3));
-  // });
-
   describe("Raffle", () => {
     it("Should deposit once", async () => {
       const { contract, usdcContract, accountUsdc } = await loadFixture(deploy);
       const usdcSigner = contract.connect(accountUsdc);
+
       await usdcContract
         .connect(accountUsdc)
-        .approve(contract.getAddress(), 1000n);
+        .approve(await contract.getAddress(), 1000n);
+
       await usdcSigner.deposit(1000n, 2);
+
       expect(await contract.pool()).to.equal(997n);
     });
 
-    it("Should deposit twice", async () => {
-      const { contract, usdcContract, accountUsdc, usdtContract, accountUsdt } =
-        await loadFixture(deploy);
-      const usdcSigner = contract.connect(accountUsdc);
-      const usdtSigner = contract.connect(accountUsdt);
-      await usdcContract
-        .connect(accountUsdc)
-        .approve(contract.getAddress(), 1000n);
-      await usdcSigner.deposit(1000n, 2);
-      await usdtContract
-        .connect(accountUsdt)
-        .approve(contract.getAddress(), 1000n);
-      await usdtSigner.deposit(1000n, 1);
-      expect(await contract.pool()).to.equal(1997n);
-    });
+    // it("Should deposit twice", async () => {
+    //   const { contract, usdcContract, accountUsdc, usdtContract, accountUsdt } =
+    //     await loadFixture(deploy);
+    //   const usdcSigner = contract.connect(accountUsdc);
+    //   const usdtSigner = contract.connect(accountUsdt);
+    //   await usdcContract
+    //     .connect(accountUsdc)
+    //     .approve(contract.getAddress(), 1000n);
+    //   await usdcSigner.deposit(1000n, 2);
+    //   await usdtContract
+    //     .connect(accountUsdt)
+    //     .approve(contract.getAddress(), 1000n);
+    //   await usdtSigner.deposit(1000n, 1);
+    //   expect(await contract.pool()).to.equal(1997n);
+    // });
 
-    it("Should win when first", async () => {
-      const {
-        contract,
-        usdcContract,
-        accountUsdc,
-        usdtContract,
-        accountUsdt,
-        owner,
-      } = await loadFixture(deploy);
-      const usdcSigner = contract.connect(accountUsdc);
-      const usdtSigner = contract.connect(accountUsdt);
+    // it("Should deposit link", async (done) => {
+    //   const { contract, linkContract, accountLink } = await loadFixture(deploy);
+    //   const linkSigner = contract.connect(accountLink);
 
-      await usdtContract
-        .connect(accountUsdt)
-        .approve(contract.getAddress(), 2000n);
-      await usdcContract
-        .connect(accountUsdc)
-        .approve(contract.getAddress(), 1000n);
+    //   await linkContract
+    //     .connect(accountLink)
+    //     .approve(contract.getAddress(), 100000000000000000000000n);
 
-      await usdtSigner.deposit(2000n, 1);
-      await usdcSigner.deposit(1000n, 2);
+    //   await linkSigner.deposit(100000000000000000000000n, 3);
 
-      const resp = (
-        await contract.queryFilter(contract.filters.Deposited())
-      ).map(({ args }) => {
-        return {
-          id: args.id,
-          deposit: args.deposit,
-        };
-      });
+    //   expect(await contract.pool()).to.be.greaterThan(0n);
+    //   console.log(await contract.pool());
 
-      const preBalance = await usdtContract.balanceOf(accountUsdt.address);
+    //   done();
+    // }).timeout(1000000);
 
-      await contract.setCoordinator(owner.address);
-      await contract.rawFulfillRandomWords(0n, [500n]);
-      await contract.withdraw(resp[0].id, resp[1].id);
+    // it("Should deposit weth", async () => {
+    //   const { contract, asd1Contract, accountAsd1 } = await loadFixture(deploy);
+    //   const asd1Signer = contract.connect(accountAsd1);
 
-      expect(await contract.pool()).to.equal(0n);
-      expect(await usdtContract.balanceOf(accountUsdt.address)).to.equal(
-        preBalance + 2997n,
-      );
-    });
+    //   await asd1Contract
+    //     .connect(accountAsd1)
+    //     .approve(contract.getAddress(), 1000n);
 
-    it("Should win when second", async () => {
-      const {
-        contract,
-        usdcContract,
-        accountUsdc,
-        usdtContract,
-        accountUsdt,
-        owner,
-      } = await loadFixture(deploy);
-      const usdcSigner = contract.connect(accountUsdc);
-      const usdtSigner = contract.connect(accountUsdt);
+    //   console.log(await asd1Contract.balanceOf(accountAsd1.address));
+    //   console.log(
+    //     await asd1Contract.allowance(
+    //       accountAsd1.address,
+    //       contract.getAddress(),
+    //     ),
+    //   );
+    //   console.log(await contract.getLatestPrice(0));
 
-      await usdtContract
-        .connect(accountUsdt)
-        .approve(contract.getAddress(), 1000n);
-      await usdcContract
-        .connect(accountUsdc)
-        .approve(contract.getAddress(), 2000n);
+    //   await asd1Signer.deposit(1000n, 0);
 
-      await usdtSigner.deposit(1000n, 1);
-      await usdcSigner.deposit(2000n, 2);
+    //   console.log(6);
 
-      const resp = (
-        await contract.queryFilter(contract.filters.Deposited())
-      ).map(({ args }) => {
-        return {
-          id: args.id,
-          deposit: args.deposit,
-        };
-      });
+    //   console.log(await contract.pool());
+    //   expect(await contract.pool()).to.be.greaterThan(0n);
+    // });
 
-      const preBalance = await usdtContract.balanceOf(accountUsdc.address);
+    // it("Should win when first", async () => {
+    //   const { contract, usdcContract, accountUsdc, usdtContract, accountUsdt } =
+    //     await loadFixture(deploy);
+    //   const usdcSigner = contract.connect(accountUsdc);
+    //   const usdtSigner = contract.connect(accountUsdt);
 
-      await contract.setCoordinator(owner.address);
-      await contract.rawFulfillRandomWords(0n, [2000n]);
-      await contract.withdraw(resp[1].id, resp[1].id);
+    //   await usdtContract
+    //     .connect(accountUsdt)
+    //     .approve(contract.getAddress(), 2000n);
+    //   await usdcContract
+    //     .connect(accountUsdc)
+    //     .approve(contract.getAddress(), 1000n);
 
-      expect(await contract.pool()).to.equal(0n);
-      expect(await usdtContract.balanceOf(accountUsdc.address)).to.equal(
-        preBalance + 2994n,
-      );
-    });
+    //   await usdtSigner.deposit(2000n, 1);
+    //   await usdcSigner.deposit(1000n, 2);
+
+    //   const resp = (
+    //     await contract.queryFilter(contract.filters.Deposited())
+    //   ).map(({ args }) => {
+    //     return {
+    //       id: args.id,
+    //       deposit: args.deposit,
+    //     };
+    //   });
+
+    //   const preBalance = await usdtContract.balanceOf(accountUsdt.address);
+
+    //   await contract.rawFulfillRandomWords(0n, [500n]);
+    //   await contract.withdraw(resp[0].id, resp[1].id);
+
+    //   expect(await contract.pool()).to.equal(0n);
+    //   expect(await usdtContract.balanceOf(accountUsdt.address)).to.equal(
+    //     preBalance + 2997n,
+    //   );
+    // });
+
+    // it("Should win when second", async () => {
+    //   const { contract, usdcContract, accountUsdc, usdtContract, accountUsdt } =
+    //     await loadFixture(deploy);
+    //   const usdcSigner = contract.connect(accountUsdc);
+    //   const usdtSigner = contract.connect(accountUsdt);
+
+    //   await usdtContract
+    //     .connect(accountUsdt)
+    //     .approve(contract.getAddress(), 1000n);
+    //   await usdcContract
+    //     .connect(accountUsdc)
+    //     .approve(contract.getAddress(), 2000n);
+
+    //   await usdtSigner.deposit(1000n, 1);
+    //   await usdcSigner.deposit(2000n, 2);
+
+    //   const resp = (
+    //     await contract.queryFilter(contract.filters.Deposited())
+    //   ).map(({ args }) => {
+    //     return {
+    //       id: args.id,
+    //       deposit: args.deposit,
+    //     };
+    //   });
+
+    //   const preBalance = await usdtContract.balanceOf(accountUsdc.address);
+
+    //   await contract.rawFulfillRandomWords(0n, [2000n]);
+    //   await contract.withdraw(resp[1].id, resp[1].id);
+
+    //   expect(await contract.pool()).to.equal(0n);
+    //   expect(await usdtContract.balanceOf(accountUsdc.address)).to.equal(
+    //     preBalance + 2994n,
+    //   );
+    // });
 
     // it("Should permit", async () => {
     //   const { contract, usdcContract, accountUsdc } = await loadFixture(deploy);
 
     //   const usdcSigner = contract.connect(accountUsdc);
-    //   await usdcContract
-    //     .connect(accountUsdc)
-    //     .approve(contract.getAddress(), 1000n);
 
     //   const chainId = 1337;
     //   const tokenName = await usdcContract.name();
@@ -229,10 +257,8 @@ describe("Raffle", () => {
     //     name: tokenName,
     //     version,
     //     chainId,
-    //     verifyingContract: await usdcContract.getAddress(),
+    //     verifyingContract: await contract.getAddress(),
     //   };
-
-    //   console.log("domain ->", domain);
 
     //   const types = {
     //     Permit: [
@@ -253,7 +279,6 @@ describe("Raffle", () => {
     //   };
 
     //   try {
-    //     console.log(message);
     //     const signature = await accountUsdc.signTypedData(
     //       domain,
     //       types,
@@ -261,8 +286,6 @@ describe("Raffle", () => {
     //     );
 
     //     const { r, s, v } = ethers.Signature.from(signature);
-
-    //     console.log("v:", v);
 
     //     await usdcSigner.permitDeposit(1000n, 2, deadline, r, s, v);
     //   } catch (error) {

@@ -11,9 +11,9 @@
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
 | contracts/ERC20/YarreToken.sol | [object Promise] |
 | contracts/interfaces/IWETH.sol | [object Promise] |
-| contracts/utils/Coordinator.sol | [object Promise] |
 | contracts/utils/DepositStorage.sol | [object Promise] |
 | contracts/utils/Merkle.sol | [object Promise] |
+| contracts/utils/MyProxy.sol | [object Promise] |
 | contracts/utils/Ownable.sol | [object Promise] |
 
 
@@ -75,9 +75,6 @@
 | └ | transfer | External ❗️ | 🛑  |NO❗️ |
 | └ | approve | External ❗️ | 🛑  |NO❗️ |
 ||||||
-| **Coordinator** | Implementation | Raffle |||
-| └ | <Constructor> | Public ❗️ | 🛑  | Raffle |
-||||||
 | **DepositStorage** | Implementation | VRFConsumerBaseV2Plus |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
 | └ | getId | Public ❗️ |   |NO❗️ |
@@ -87,6 +84,12 @@
 ||||||
 | **Merkle** | Implementation |  |||
 | └ | checkProof | Public ❗️ |   |NO❗️ |
+||||||
+| **MyProxy** | Implementation | Ownable, Proxy |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | setImplementation | External ❗️ | 🛑  | onlyOwner |
+| └ | _implementation | Internal 🔒 |   | |
+| └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
 ||||||
 | **Ownable** | Implementation |  |||
 | └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |

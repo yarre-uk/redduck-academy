@@ -2,13 +2,13 @@
 pragma solidity 0.8.24;
 
 import { YarreToken } from "./ERC20/YarreToken.sol";
-import { Ownable } from "./utils/Ownable.sol";
 import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import { DepositStorage } from "./utils/DepositStorage.sol";
 import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import { VRFV2PlusClient } from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import { IVRFCoordinatorV2Plus } from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
 import "hardhat/console.sol";
 
 //TODO non reentrant
@@ -19,8 +19,8 @@ contract Raffle is DepositStorage {
         FINISHED
     }
 
-    uint64 immutable subscriptionId;
-    bytes32 immutable keyHash;
+    uint64 subscriptionId;
+    bytes32 keyHash;
     uint32 constant CALLBACK_GAS_LIMIT = 100000;
     uint16 constant REQUEST_CONFIRMATIONS = 3;
     uint256[] public randomWords;
@@ -33,29 +33,36 @@ contract Raffle is DepositStorage {
     address[] internal whitelist;
     address[] internal priceFeedOracles;
 
-    ISwapRouter internal immutable uniswapRouter;
-    address public immutable USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    ISwapRouter internal uniswapRouter;
+    address public USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     uint256 public raffleId = 0;
     RaffleStatus public status = RaffleStatus.FINISHED;
 
-    constructor(
+    constructor() DepositStorage(address(this)) {}
+
+    function initialize(
         address[] memory _approvedTokens,
         ISwapRouter _uniswapRouter,
         address[] memory _priceFeedOracles,
         uint64 _subscriptionId,
         address _vrfCoordinator,
         bytes32 _keyHash
-    ) DepositStorage(_vrfCoordinator) {
+    ) public {
         whitelist = _approvedTokens;
         uniswapRouter = _uniswapRouter;
         priceFeedOracles = _priceFeedOracles;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
+
+        s_vrfCoordinator = IVRFCoordinatorV2Plus(_vrfCoordinator);
     }
 
     //TODO permit
     //TODO remove transferFrom
     function deposit(uint256 _amount, uint256 _tokenIndex) public {
+        console.log("Deposit: ", _amount, _tokenIndex, priceFeedOracles.length);
+        console.log(address(uniswapRouter));
+
         require(
             status == RaffleStatus.OPEN || status == RaffleStatus.FINISHED,
             "Raffle is not open"
@@ -78,10 +85,11 @@ contract Raffle is DepositStorage {
                 _amount
             );
 
-            int256 price = (getLatestPrice(_tokenIndex) * int256(_amount)) /
-                1e8;
+            // int256 price = (getLatestPrice(_tokenIndex) * int256(_amount)) /
+            //     1e8;
 
-            uint minPrice = uint(price - (price * int24(poolFee)) / 1e6);
+            // uint minAmount = uint(price - (price * int24(poolFee)) / 1e6);
+            // console.log("Min amount: ", minAmount);
 
             ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
                 .ExactInputSingleParams({
@@ -91,8 +99,7 @@ contract Raffle is DepositStorage {
                     recipient: address(this),
                     deadline: block.timestamp,
                     amountIn: _amount,
-                    amountOutMinimum: minPrice,
-                    //????
+                    amountOutMinimum: 0,
                     sqrtPriceLimitX96: 0
                 });
 
@@ -127,18 +134,18 @@ contract Raffle is DepositStorage {
         uint256 _amount,
         uint256 _tokenIndex,
         uint256 _deadline,
-        bytes32 r,
-        bytes32 s,
-        uint8 v
+        bytes32 _r,
+        bytes32 _s,
+        uint8 _v
     ) public {
         ERC20Permit(whitelist[_tokenIndex]).permit(
             msg.sender,
             address(this),
             _amount,
             _deadline,
-            v,
-            r,
-            s
+            _v,
+            _r,
+            _s
         );
 
         deposit(_amount, _tokenIndex);
