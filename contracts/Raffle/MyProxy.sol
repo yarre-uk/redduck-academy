@@ -36,8 +36,6 @@ contract MyProxy is Ownable, Proxy {
     {
         uint256 implPosition = implementationPosition;
 
-        console.log("--------", implementationPosition);
-
         assembly {
             impl := sload(implPosition)
         }

@@ -11,11 +11,11 @@
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
 | contracts/ERC20/YarreToken.sol | [object Promise] |
 | contracts/interfaces/IWETH.sol | [object Promise] |
+| contracts/Raffle/DepositStorage.sol | [object Promise] |
+| contracts/Raffle/MyProxy.sol | [object Promise] |
 | contracts/Raffle/Raffle.sol | [object Promise] |
 | contracts/Raffle/RaffleExtended.sol | [object Promise] |
-| contracts/utils/DepositStorage.sol | [object Promise] |
 | contracts/utils/Merkle.sol | [object Promise] |
-| contracts/utils/MyProxy.sol | [object Promise] |
 
 
 ### Contracts Description Table
@@ -76,12 +76,24 @@
 | └ | transfer | External ❗️ | 🛑  |NO❗️ |
 | └ | approve | External ❗️ | 🛑  |NO❗️ |
 ||||||
+| **DepositStorage** | Implementation |  |||
+| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+| └ | getId | Public ❗️ |   |NO❗️ |
+| └ | isEmpty | Public ❗️ |   |NO❗️ |
+| └ | addNode | Public ❗️ | 🛑  |NO❗️ |
+||||||
+| **MyProxy** | Implementation | Ownable, Proxy |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | setImplementation | External ❗️ | 🛑  | onlyOwner |
+| └ | _implementation | Internal 🔒 |   | |
+| └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
+||||||
 | **Raffle** | Implementation | DepositStorage, VRFConsumerBaseV2Plus |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
 | └ | initialize | Public ❗️ | 🛑  |NO❗️ |
 | └ | deposit | Public ❗️ | 🛑  |NO❗️ |
 | └ | permitDeposit | Public ❗️ | 🛑  |NO❗️ |
-| └ | withdraw | Public ❗️ | 🛑  | onlyOwner |
+| └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
 | └ | _withdrawLast | Internal 🔒 | 🛑  | |
 | └ | requestRandomWords | External ❗️ | 🛑  | onlyOwner |
 | └ | fulfillRandomWords | Internal 🔒 | 🛑  | |
@@ -92,20 +104,8 @@
 | └ | setPoolFee | Public ❗️ | 🛑  | onlyOwner |
 | └ | getChance | Public ❗️ |   |NO❗️ |
 ||||||
-| **DepositStorage** | Implementation |  |||
-| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
-| └ | getId | Public ❗️ |   |NO❗️ |
-| └ | isEmpty | Public ❗️ |   |NO❗️ |
-| └ | addNode | Public ❗️ | 🛑  |NO❗️ |
-||||||
 | **Merkle** | Implementation |  |||
 | └ | checkProof | Public ❗️ |   |NO❗️ |
-||||||
-| **MyProxy** | Implementation | Ownable, Proxy |||
-| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
-| └ | setImplementation | External ❗️ | 🛑  | onlyOwner |
-| └ | _implementation | Internal 🔒 |   | |
-| └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
 
 
 ### Legend
