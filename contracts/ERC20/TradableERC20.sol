@@ -91,11 +91,11 @@ contract TradableERC20 is VotingERC20 {
 
     /// @notice Withdraw a specific amount of Ether.
     function withdrawBalanceAmount(uint256 _value) public onlyOwner {
-        payable(_owner).transfer(_value);
+        payable(owner()).transfer(_value);
     }
 
     /// @notice Withdraw all Ether.
     function withdrawBalance() public onlyOwner {
-        payable(_owner).transfer(address(this).balance);
+        payable(owner()).transfer(address(this).balance);
     }
 }

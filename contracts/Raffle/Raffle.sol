@@ -1,44 +1,45 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { YarreToken } from "./ERC20/YarreToken.sol";
 import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-import { DepositStorage } from "./utils/DepositStorage.sol";
+
 import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import { VRFV2PlusClient } from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
-import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import { IVRFCoordinatorV2Plus } from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
+import { VRFConsumerBaseV2Plus } from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
+
+import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+
+import { DepositStorage } from "../utils/DepositStorage.sol";
 import "hardhat/console.sol";
 
-//TODO non reentrant
-contract Raffle is DepositStorage {
-    enum RaffleStatus {
-        OPEN,
-        CLOSED,
-        FINISHED
-    }
+enum RaffleStatus {
+    OPEN,
+    CLOSED,
+    FINISHED
+}
 
-    uint64 subscriptionId;
-    bytes32 keyHash;
+//TODO non reentrant
+contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
     uint32 constant CALLBACK_GAS_LIMIT = 100000;
     uint16 constant REQUEST_CONFIRMATIONS = 3;
-    uint256[] public randomWords;
-    uint256 public requestId;
     uint32 constant NUM_WORDS = 1;
+    uint256[] public randomWords;
+    uint256 internal requestId;
+    uint64 private subscriptionId;
+    bytes32 private keyHash;
 
-    event ReturnedRandomness(uint256[] randomWords);
-
-    //TODO IERC20Permit
+    uint256 public raffleId = 0;
+    RaffleStatus public status = RaffleStatus.FINISHED;
+    uint24 internal poolFee = 3000;
     address[] internal whitelist;
     address[] internal priceFeedOracles;
 
     ISwapRouter internal uniswapRouter;
-    address public USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-    uint256 public raffleId = 0;
-    RaffleStatus public status = RaffleStatus.FINISHED;
+    address internal USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
 
-    constructor() DepositStorage(address(this)) {}
+    constructor() VRFConsumerBaseV2Plus(address(this)) {}
 
     function initialize(
         address[] memory _approvedTokens,
@@ -47,7 +48,7 @@ contract Raffle is DepositStorage {
         uint64 _subscriptionId,
         address _vrfCoordinator,
         bytes32 _keyHash
-    ) public {
+    ) public virtual {
         whitelist = _approvedTokens;
         uniswapRouter = _uniswapRouter;
         priceFeedOracles = _priceFeedOracles;
@@ -58,7 +59,6 @@ contract Raffle is DepositStorage {
     }
 
     //TODO permit
-    //TODO remove transferFrom
     function deposit(uint256 _amount, uint256 _tokenIndex) public {
         console.log("Deposit: ", _amount, _tokenIndex, priceFeedOracles.length);
         console.log(address(uniswapRouter));
@@ -237,16 +237,6 @@ contract Raffle is DepositStorage {
         // console.log("Winner: ", depositNode.sender);
     }
 
-    function getChance(
-        bytes32[] memory _ids
-    ) public view returns (uint256 total) {
-        for (uint256 i = 0; i < _ids.length; i++) {
-            total += deposits[_ids[i]].amount;
-        }
-
-        total = (total * 1000000) / pool;
-    }
-
     function requestRandomWords() external onlyOwner {
         requestId = s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
@@ -269,12 +259,7 @@ contract Raffle is DepositStorage {
         require(requestId == _requestId, "Fulfillment error");
 
         randomWords = _randomWords;
-        emit ReturnedRandomness(_randomWords);
         status = RaffleStatus.CLOSED;
-    }
-
-    function setWhitelist(address[] memory _approvedTokens) public onlyOwner {
-        whitelist = _approvedTokens;
     }
 
     function getLatestPrice(uint256 _id) public view returns (int256) {

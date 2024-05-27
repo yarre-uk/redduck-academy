@@ -11,10 +11,11 @@
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
 | contracts/ERC20/YarreToken.sol | [object Promise] |
 | contracts/interfaces/IWETH.sol | [object Promise] |
+| contracts/Raffle/Raffle.sol | [object Promise] |
+| contracts/Raffle/RaffleExtended.sol | [object Promise] |
 | contracts/utils/DepositStorage.sol | [object Promise] |
 | contracts/utils/Merkle.sol | [object Promise] |
 | contracts/utils/MyProxy.sol | [object Promise] |
-| contracts/utils/Ownable.sol | [object Promise] |
 
 
 ### Contracts Description Table
@@ -25,7 +26,7 @@
 |     └      |  **Function Name**  |  **Visibility**  |  **Mutability**  |  **Modifiers**  |
 ||||||
 | **BaseERC20** | Implementation | IERC20, Ownable |||
-| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
 | └ | balanceOf | Public ❗️ |   |NO❗️ |
 | └ | transfer | Public ❗️ | 🛑  | validAddress |
 | └ | allowance | Public ❗️ |   |NO❗️ |
@@ -75,12 +76,27 @@
 | └ | transfer | External ❗️ | 🛑  |NO❗️ |
 | └ | approve | External ❗️ | 🛑  |NO❗️ |
 ||||||
-| **DepositStorage** | Implementation | VRFConsumerBaseV2Plus |||
+| **Raffle** | Implementation | DepositStorage, VRFConsumerBaseV2Plus |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
+| └ | initialize | Public ❗️ | 🛑  |NO❗️ |
+| └ | deposit | Public ❗️ | 🛑  |NO❗️ |
+| └ | permitDeposit | Public ❗️ | 🛑  |NO❗️ |
+| └ | withdraw | Public ❗️ | 🛑  | onlyOwner |
+| └ | _withdrawLast | Internal 🔒 | 🛑  | |
+| └ | requestRandomWords | External ❗️ | 🛑  | onlyOwner |
+| └ | fulfillRandomWords | Internal 🔒 | 🛑  | |
+| └ | getLatestPrice | Public ❗️ |   |NO❗️ |
+||||||
+| **RaffleExtended** | Implementation | Raffle |||
+| └ | setWhitelist | Public ❗️ | 🛑  | onlyOwner |
+| └ | setPoolFee | Public ❗️ | 🛑  | onlyOwner |
+| └ | getChance | Public ❗️ |   |NO❗️ |
+||||||
+| **DepositStorage** | Implementation |  |||
+| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
 | └ | getId | Public ❗️ |   |NO❗️ |
 | └ | isEmpty | Public ❗️ |   |NO❗️ |
 | └ | addNode | Public ❗️ | 🛑  |NO❗️ |
-| └ | setPoolFee | Public ❗️ | 🛑  | onlyOwner |
 ||||||
 | **Merkle** | Implementation |  |||
 | └ | checkProof | Public ❗️ |   |NO❗️ |
@@ -90,9 +106,6 @@
 | └ | setImplementation | External ❗️ | 🛑  | onlyOwner |
 | └ | _implementation | Internal 🔒 |   | |
 | └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
-||||||
-| **Ownable** | Implementation |  |||
-| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
 
 
 ### Legend

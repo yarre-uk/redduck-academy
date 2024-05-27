@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { VRFConsumerBaseV2Plus } from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
-
-abstract contract DepositStorage is VRFConsumerBaseV2Plus {
+abstract contract DepositStorage {
     //TODO make internal
     uint256 public pool = 0;
     mapping(bytes32 => Deposit) internal deposits;
-    uint24 internal poolFee = 3000;
     bytes32 public lastDepositId = bytes32(0);
 
     struct Deposit {
@@ -25,9 +22,7 @@ abstract contract DepositStorage is VRFConsumerBaseV2Plus {
         Deposit deposit
     );
 
-    constructor(
-        address _vrfCoordinator
-    ) VRFConsumerBaseV2Plus(_vrfCoordinator) {}
+    constructor() {}
 
     function getId(Deposit memory _params) public pure returns (bytes32) {
         return
@@ -54,9 +49,5 @@ abstract contract DepositStorage is VRFConsumerBaseV2Plus {
         emit Deposited(_deposit.sender, id, _deposit.prevDeposit, _deposit);
 
         return id;
-    }
-
-    function setPoolFee(uint24 _poolFee) public onlyOwner {
-        poolFee = _poolFee;
     }
 }

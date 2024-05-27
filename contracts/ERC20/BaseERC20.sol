@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { IERC20 } from "./IERC20.sol";
-import { Ownable } from "../utils/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title BaseERC20
 /// @dev This contract implements the basic functionality of an ERC20 token.
@@ -33,10 +33,9 @@ abstract contract BaseERC20 is IERC20, Ownable {
         string memory _name,
         string memory _symbol,
         uint8 _decimals
-    ) {
+    ) Ownable(msg.sender) {
         _totalSupply = _initialSupply;
-        _owner = msg.sender;
-        _balances[_owner] = _initialSupply;
+        _balances[owner()] = _initialSupply;
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
