@@ -92,7 +92,6 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
                 1e8;
 
             uint minAmount = uint(price - (price * int24(poolFee)) / 1e6);
-            // console.log("Min amount: ", minAmount);
 
             ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
                 .ExactInputSingleParams({
@@ -105,6 +104,15 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
                     amountOutMinimum: minAmount,
                     sqrtPriceLimitX96: 0
                 });
+
+            // console.log("tokenIn", params.tokenIn);
+            // console.log("tokenOut", params.tokenOut);
+            // console.log("fee", params.fee);
+            // console.log("recipient", params.recipient);
+            // console.log("deadline", params.deadline);
+            // console.log("amountIn", params.amountIn);
+            // console.log("amountOutMinimum", params.amountOutMinimum);
+            // console.log("sqrtPriceLimitX96", params.sqrtPriceLimitX96);
 
             deposited = uniswapRouter.exactInputSingle(params);
             // console.log("Deposited 1: ", deposited);
@@ -141,6 +149,14 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
         bytes32 _s,
         uint8 _v
     ) public {
+        // console.log("msg.sender: %s", msg.sender);
+        // console.log("address(this): %s", address(this));
+        // console.log("amount: %s", _amount);
+        // console.log("deadline: %s", _deadline);
+        // console.log("v: %s", _v);
+        // console.logBytes32(_r);
+        // console.logBytes32(_s);
+
         ERC20Permit(whitelist[_tokenIndex]).permit(
             msg.sender,
             address(this),
