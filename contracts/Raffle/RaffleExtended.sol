@@ -4,12 +4,8 @@ pragma solidity 0.8.24;
 import { Raffle } from "./Raffle.sol";
 
 contract RaffleExtended is Raffle {
-    function setWhitelist(address[] memory _approvedTokens) public onlyOwner {
-        whitelist = _approvedTokens;
-    }
-
-    function setPoolFee(uint24 _poolFee) public onlyOwner {
-        poolFee = _poolFee;
+    function setWhitelist(address[] memory _whitelist) public onlyOwner {
+        whitelist = _whitelist;
     }
 
     function getChance(

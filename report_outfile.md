@@ -77,7 +77,6 @@
 | └ | approve | External ❗️ | 🛑  |NO❗️ |
 ||||||
 | **DepositStorage** | Implementation |  |||
-| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
 | └ | getId | Public ❗️ |   |NO❗️ |
 | └ | isEmpty | Public ❗️ |   |NO❗️ |
 | └ | addNode | Public ❗️ | 🛑  |NO❗️ |
@@ -97,11 +96,9 @@
 | └ | _withdrawLast | Internal 🔒 | 🛑  | |
 | └ | requestRandomWords | External ❗️ | 🛑  | onlyOwner |
 | └ | fulfillRandomWords | Internal 🔒 | 🛑  | |
-| └ | getLatestPrice | Public ❗️ |   |NO❗️ |
 ||||||
 | **RaffleExtended** | Implementation | Raffle |||
 | └ | setWhitelist | Public ❗️ | 🛑  | onlyOwner |
-| └ | setPoolFee | Public ❗️ | 🛑  | onlyOwner |
 | └ | getChance | Public ❗️ |   |NO❗️ |
 ||||||
 | **Merkle** | Implementation |  |||

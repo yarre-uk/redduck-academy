@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+import { IUniswapV2Router02 } from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import { VRFV2PlusClient } from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
@@ -20,8 +20,7 @@ enum RaffleStatus {
     FINISHED
 }
 
-//TODO non reentrant
-contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
+abstract contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
     uint32 constant CALLBACK_GAS_LIMIT = 100000;
     uint16 constant REQUEST_CONFIRMATIONS = 3;
     uint32 constant NUM_WORDS = 1;
@@ -32,25 +31,21 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
 
     uint256 public raffleId;
     RaffleStatus public status;
-    uint24 internal poolFee;
     address[] internal whitelist;
-    address[] internal priceFeedOracles;
 
-    ISwapRouter internal uniswapRouter;
+    IUniswapV2Router02 internal uniswapRouter;
     address internal USDT;
 
     constructor() VRFConsumerBaseV2Plus(address(this)) {}
 
     function initialize(
         address[] memory _approvedTokens,
-        address[] memory _priceFeedOracles,
-        ISwapRouter _uniswapRouter,
+        IUniswapV2Router02 _uniswapRouter,
         uint64 _subscriptionId,
         bytes32 _keyHash,
         address _vrfCoordinator
     ) public virtual {
         whitelist = _approvedTokens;
-        priceFeedOracles = _priceFeedOracles;
         uniswapRouter = _uniswapRouter;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
@@ -60,11 +55,9 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
         pool = 0;
         lastDepositId = bytes32(0);
         status = RaffleStatus.FINISHED;
-        poolFee = 3000;
         USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     }
 
-    //TODO permit
     function deposit(uint256 _amount, uint256 _tokenIndex) public {
         require(
             status == RaffleStatus.OPEN || status == RaffleStatus.FINISHED,
@@ -88,34 +81,25 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
                 _amount
             );
 
-            int256 price = (getLatestPrice(_tokenIndex) * int256(_amount)) /
-                1e8;
+            address[] memory path = new address[](2);
+            path[0] = whitelist[_tokenIndex];
+            path[1] = USDT;
 
-            uint minAmount = uint(price - (price * int24(poolFee)) / 1e6);
+            uint[] memory targetAmounts = uniswapRouter.getAmountsOut(
+                _amount,
+                path
+            );
+            uint256 minAmountOut = targetAmounts[targetAmounts.length - 1];
 
-            ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
-                .ExactInputSingleParams({
-                    tokenIn: whitelist[_tokenIndex],
-                    tokenOut: USDT,
-                    fee: poolFee,
-                    recipient: address(this),
-                    deadline: block.timestamp,
-                    amountIn: _amount,
-                    amountOutMinimum: minAmount,
-                    sqrtPriceLimitX96: 0
-                });
+            uint256[] memory result = uniswapRouter.swapExactTokensForTokens(
+                _amount,
+                minAmountOut,
+                path,
+                address(this),
+                block.timestamp
+            );
 
-            // console.log("tokenIn", params.tokenIn);
-            // console.log("tokenOut", params.tokenOut);
-            // console.log("fee", params.fee);
-            // console.log("recipient", params.recipient);
-            // console.log("deadline", params.deadline);
-            // console.log("amountIn", params.amountIn);
-            // console.log("amountOutMinimum", params.amountOutMinimum);
-            // console.log("sqrtPriceLimitX96", params.sqrtPriceLimitX96);
-
-            deposited = uniswapRouter.exactInputSingle(params);
-            // console.log("Deposited 1: ", deposited);
+            deposited = result[result.length - 1];
         } else {
             TransferHelper.safeTransferFrom(
                 USDT,
@@ -124,7 +108,6 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
                 _amount
             );
             deposited = _amount;
-            // console.log("Deposited 2: ", deposited);
         }
 
         pool += deposited;
@@ -149,14 +132,6 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
         bytes32 _s,
         uint8 _v
     ) public {
-        // console.log("msg.sender: %s", msg.sender);
-        // console.log("address(this): %s", address(this));
-        // console.log("amount: %s", _amount);
-        // console.log("deadline: %s", _deadline);
-        // console.log("v: %s", _v);
-        // console.logBytes32(_r);
-        // console.logBytes32(_s);
-
         ERC20Permit(whitelist[_tokenIndex]).permit(
             msg.sender,
             address(this),
@@ -216,8 +191,6 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
         lastDepositId = bytes32(0);
         pool = 0;
         status = RaffleStatus.FINISHED;
-
-        // console.log("Winner: ", depositNode.sender);
     }
 
     function _withdrawLast(bytes32 _depositId) internal {
@@ -230,8 +203,6 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
             depositNode.raffleId == raffleId,
             "Deposit is not from this raffle"
         );
-
-        // console.log(depositNode.point, depositNode.amount, pool, random);
 
         require(
             depositNode.point + depositNode.amount == pool,
@@ -249,8 +220,6 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
         lastDepositId = bytes32(0);
         pool = 0;
         status = RaffleStatus.FINISHED;
-
-        // console.log("Winner: ", depositNode.sender);
     }
 
     function requestRandomWords() external onlyOwner {
@@ -276,14 +245,5 @@ contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
 
         randomWords = _randomWords;
         status = RaffleStatus.CLOSED;
-    }
-
-    function getLatestPrice(uint256 _id) public view returns (int256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(
-            priceFeedOracles[_id]
-        );
-
-        (, int price, , , ) = priceFeed.latestRoundData();
-        return price;
     }
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+//TODO make it library
 abstract contract DepositStorage {
     //TODO make internal
     uint256 public pool = 0;
@@ -21,8 +22,6 @@ abstract contract DepositStorage {
         bytes32 indexed prevDeposit,
         Deposit deposit
     );
-
-    constructor() {}
 
     function getId(Deposit memory _params) public pure returns (bytes32) {
         return
