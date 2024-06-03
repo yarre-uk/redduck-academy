@@ -1,4 +1,7 @@
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import {
+  loadFixture,
+  time,
+} from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
@@ -73,6 +76,7 @@ describe("Raffle", () => {
       uniswapV2Router,
       0n,
       ethers.randomBytes(32),
+      owner.address,
       owner.address,
     );
 
@@ -201,6 +205,8 @@ describe("Raffle", () => {
         const prePool = await contract.pool();
         const preBalance = await usdtContract.balanceOf(accountUsdt.address);
 
+        await time.increase(60 * 60);
+
         await contract.rawFulfillRandomWords(0n, [500n]);
         await contract.withdraw(resp[0].id, resp[1].id);
 
@@ -241,6 +247,8 @@ describe("Raffle", () => {
 
         const prePool = await contract.pool();
         const preBalance = await usdtContract.balanceOf(accountUsdc.address);
+
+        await time.increase(60 * 60);
 
         await contract.rawFulfillRandomWords(0n, [2000n]);
         await contract.withdraw(resp[1].id, resp[1].id);

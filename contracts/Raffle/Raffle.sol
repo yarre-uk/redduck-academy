@@ -8,6 +8,7 @@ import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/inte
 import { VRFV2PlusClient } from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 import { IVRFCoordinatorV2Plus } from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
 import { VRFConsumerBaseV2Plus } from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
+import { AutomationCompatibleInterface } from "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 
 import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
@@ -20,7 +21,10 @@ enum RaffleStatus {
     CLOSED
 }
 
-abstract contract Raffle is VRFConsumerBaseV2Plus {
+abstract contract Raffle is
+    VRFConsumerBaseV2Plus,
+    AutomationCompatibleInterface
+{
     uint32 constant CALLBACK_GAS_LIMIT = 100000;
     uint16 constant REQUEST_CONFIRMATIONS = 3;
     uint32 constant NUM_WORDS = 1;
@@ -34,12 +38,18 @@ abstract contract Raffle is VRFConsumerBaseV2Plus {
     RaffleStatus public status;
     address[] internal whitelist;
     State internal depositState;
+    uint256 internal timeToClose;
+    uint256 internal startedAt;
 
+    address public forwarderAddress;
     IUniswapV2Router02 internal uniswapRouter;
     address internal USDT;
 
     using DepositStorage for State;
 
+    event RaffleStarted(uint256 indexed raffleId);
+    event RaffleClosed(uint256 indexed raffleId);
+    event RaffleFinished(uint256 indexed raffleId);
     event Deposited(
         address indexed sender,
         bytes32 indexed id,
@@ -54,16 +64,20 @@ abstract contract Raffle is VRFConsumerBaseV2Plus {
         IUniswapV2Router02 _uniswapRouter,
         uint64 _subscriptionId,
         bytes32 _keyHash,
-        address _vrfCoordinator
+        address _vrfCoordinator,
+        address _forwarderAddress
     ) public virtual {
         whitelist = _approvedTokens;
         uniswapRouter = _uniswapRouter;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
+        forwarderAddress = _forwarderAddress;
 
         s_vrfCoordinator = IVRFCoordinatorV2Plus(_vrfCoordinator);
 
         USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+        timeToClose = 5 minutes;
+        startedAt = block.timestamp;
     }
 
     function deposit(uint256 _amount, uint256 _tokenIndex) public {
@@ -72,6 +86,8 @@ abstract contract Raffle is VRFConsumerBaseV2Plus {
             "Raffle is not open"
         );
         require(whitelist[_tokenIndex] != address(0), "Wrong token index");
+        require(_amount > 0, "Amount should be greater than 0");
+        require(startedAt + timeToClose > block.timestamp, "Raffle is closed");
 
         uint256 deposited;
 
@@ -129,7 +145,12 @@ abstract contract Raffle is VRFConsumerBaseV2Plus {
         });
 
         depositState.addNode(depositDto);
-        status = RaffleStatus.OPEN;
+
+        if (status == RaffleStatus.FINISHED) {
+            status = RaffleStatus.OPEN;
+            startedAt = block.timestamp;
+            emit RaffleStarted(raffleId);
+        }
 
         emit Deposited(
             depositDto.sender,
@@ -164,6 +185,8 @@ abstract contract Raffle is VRFConsumerBaseV2Plus {
         uint256 random = randomWords[0] % pool;
 
         require(status == RaffleStatus.CLOSED, "Raffle is not closed");
+        require(block.timestamp > startedAt + timeToClose, "Raffle is open");
+        // require(startedAt + timeToClose > block.timestamp, "Raffle is closed");
 
         if (
             nextDepositId == depositState.lastDepositId &&
@@ -209,6 +232,8 @@ abstract contract Raffle is VRFConsumerBaseV2Plus {
         depositState.lastDepositId = bytes32(0);
         pool = 0;
         status = RaffleStatus.FINISHED;
+
+        emit RaffleFinished(raffleId - 1);
     }
 
     function _withdrawLast(bytes32 _depositId) internal {
@@ -238,10 +263,38 @@ abstract contract Raffle is VRFConsumerBaseV2Plus {
         depositState.lastDepositId = bytes32(0);
         pool = 0;
         status = RaffleStatus.FINISHED;
+
+        emit RaffleFinished(raffleId - 1);
     }
 
-    //TODO only after some time passed
-    function requestRandomWords() external onlyOwner {
+    function fulfillRandomWords(
+        uint256 _requestId,
+        uint256[] memory _randomWords
+    ) internal override {
+        require(requestId == _requestId, "Fulfillment error");
+
+        randomWords = _randomWords;
+        status = RaffleStatus.CLOSED;
+
+        emit RaffleClosed(raffleId);
+    }
+
+    function checkUpkeep(
+        bytes calldata _checkData
+    ) external view returns (bool upkeepNeeded, bytes memory performData) {
+        return (
+            block.timestamp > startedAt + timeToClose &&
+                status == RaffleStatus.OPEN,
+            ""
+        );
+    }
+
+    function performUpkeep(bytes calldata _performData) external {
+        require(
+            msg.sender == forwarderAddress,
+            "Caller is not the Chainlink Keeper Registry"
+        );
+
         requestId = s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
                 keyHash: keyHash,
@@ -254,15 +307,5 @@ abstract contract Raffle is VRFConsumerBaseV2Plus {
                 )
             })
         );
-    }
-
-    function fulfillRandomWords(
-        uint256 _requestId,
-        uint256[] memory _randomWords
-    ) internal override {
-        require(requestId == _requestId, "Fulfillment error");
-
-        randomWords = _randomWords;
-        status = RaffleStatus.CLOSED;
     }
 }

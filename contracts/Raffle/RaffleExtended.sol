@@ -4,6 +4,10 @@ pragma solidity 0.8.24;
 import { Raffle } from "./Raffle.sol";
 
 contract RaffleExtended is Raffle {
+    function setForwarderAddress(address _forwarderAddress) external onlyOwner {
+        forwarderAddress = _forwarderAddress;
+    }
+
     function setWhitelist(address[] memory _whitelist) public onlyOwner {
         whitelist = _whitelist;
     }

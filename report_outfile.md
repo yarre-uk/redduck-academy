@@ -87,17 +87,19 @@
 | └ | _implementation | Internal 🔒 |   | |
 | └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
 ||||||
-| **Raffle** | Implementation | VRFConsumerBaseV2Plus |||
+| **Raffle** | Implementation | VRFConsumerBaseV2Plus, AutomationCompatibleInterface |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
 | └ | initialize | Public ❗️ | 🛑  |NO❗️ |
 | └ | deposit | Public ❗️ | 🛑  |NO❗️ |
 | └ | permitDeposit | Public ❗️ | 🛑  |NO❗️ |
 | └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
 | └ | _withdrawLast | Internal 🔒 | 🛑  | |
-| └ | requestRandomWords | External ❗️ | 🛑  | onlyOwner |
 | └ | fulfillRandomWords | Internal 🔒 | 🛑  | |
+| └ | checkUpkeep | External ❗️ |   |NO❗️ |
+| └ | performUpkeep | External ❗️ | 🛑  |NO❗️ |
 ||||||
 | **RaffleExtended** | Implementation | Raffle |||
+| └ | setForwarderAddress | External ❗️ | 🛑  | onlyOwner |
 | └ | setWhitelist | Public ❗️ | 🛑  | onlyOwner |
 | └ | getChance | Public ❗️ |   |NO❗️ |
 ||||||
