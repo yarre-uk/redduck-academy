@@ -76,10 +76,10 @@
 | └ | transfer | External ❗️ | 🛑  |NO❗️ |
 | └ | approve | External ❗️ | 🛑  |NO❗️ |
 ||||||
-| **DepositStorage** | Implementation |  |||
-| └ | getId | Public ❗️ |   |NO❗️ |
-| └ | isEmpty | Public ❗️ |   |NO❗️ |
-| └ | addNode | Public ❗️ | 🛑  |NO❗️ |
+| **DepositStorage** | Library |  |||
+| └ | getId | Internal 🔒 |   | |
+| └ | isEmpty | Internal 🔒 |   | |
+| └ | addNode | Internal 🔒 | 🛑  | |
 ||||||
 | **MyProxy** | Implementation | Ownable, Proxy |||
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
@@ -87,7 +87,7 @@
 | └ | _implementation | Internal 🔒 |   | |
 | └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
 ||||||
-| **Raffle** | Implementation | DepositStorage, VRFConsumerBaseV2Plus |||
+| **Raffle** | Implementation | VRFConsumerBaseV2Plus |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
 | └ | initialize | Public ❗️ | 🛑  |NO❗️ |
 | └ | deposit | Public ❗️ | 🛑  |NO❗️ |

@@ -1,29 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-//TODO make it library
-abstract contract DepositStorage {
-    //TODO make internal
-    uint256 public pool = 0;
-    mapping(bytes32 => Deposit) internal deposits;
-    bytes32 public lastDepositId = bytes32(0);
+struct State {
+    mapping(bytes32 => Deposit) deposits;
+    bytes32 lastDepositId;
+}
 
-    struct Deposit {
-        uint256 raffleId;
-        address sender;
-        uint256 amount;
-        uint256 point;
-        bytes32 prevDeposit;
-    }
+struct Deposit {
+    uint256 raffleId;
+    address sender;
+    uint256 amount;
+    uint256 point;
+    bytes32 prevDeposit;
+}
 
-    event Deposited(
-        address indexed sender,
-        bytes32 indexed id,
-        bytes32 indexed prevDeposit,
-        Deposit deposit
-    );
-
-    function getId(Deposit memory _params) public pure returns (bytes32) {
+library DepositStorage {
+    function getId(Deposit memory _params) internal pure returns (bytes32) {
         return
             keccak256(
                 abi.encodePacked(
@@ -36,16 +28,20 @@ abstract contract DepositStorage {
             );
     }
 
-    function isEmpty(bytes32 id) public view returns (bool) {
-        return deposits[id].sender == address(0);
+    function isEmpty(
+        State storage state,
+        bytes32 id
+    ) internal view returns (bool) {
+        return state.deposits[id].sender == address(0);
     }
 
-    function addNode(Deposit memory _deposit) public returns (bytes32) {
+    function addNode(
+        State storage state,
+        Deposit memory _deposit
+    ) internal returns (bytes32) {
         bytes32 id = getId(_deposit);
-        deposits[id] = _deposit;
-        lastDepositId = id;
-
-        emit Deposited(_deposit.sender, id, _deposit.prevDeposit, _deposit);
+        state.deposits[id] = _deposit;
+        state.lastDepositId = id;
 
         return id;
     }

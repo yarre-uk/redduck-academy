@@ -12,7 +12,7 @@ contract RaffleExtended is Raffle {
         bytes32[] memory _ids
     ) public view returns (uint256 total) {
         for (uint256 i = 0; i < _ids.length; i++) {
-            total += deposits[_ids[i]].amount;
+            total += depositState.deposits[_ids[i]].amount;
         }
 
         total = (total * 1000000) / pool;

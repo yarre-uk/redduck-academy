@@ -11,16 +11,16 @@ import { VRFConsumerBaseV2Plus } from "@chainlink/contracts/src/v0.8/vrf/dev/VRF
 
 import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
-import { DepositStorage } from "./DepositStorage.sol";
+import { DepositStorage, State, Deposit } from "./DepositStorage.sol";
 import "hardhat/console.sol";
 
 enum RaffleStatus {
+    FINISHED,
     OPEN,
-    CLOSED,
-    FINISHED
+    CLOSED
 }
 
-abstract contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
+abstract contract Raffle is VRFConsumerBaseV2Plus {
     uint32 constant CALLBACK_GAS_LIMIT = 100000;
     uint16 constant REQUEST_CONFIRMATIONS = 3;
     uint32 constant NUM_WORDS = 1;
@@ -30,11 +30,22 @@ abstract contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
     bytes32 private keyHash;
 
     uint256 public raffleId;
+    uint256 public pool = 0;
     RaffleStatus public status;
     address[] internal whitelist;
+    State internal depositState;
 
     IUniswapV2Router02 internal uniswapRouter;
     address internal USDT;
+
+    using DepositStorage for State;
+
+    event Deposited(
+        address indexed sender,
+        bytes32 indexed id,
+        bytes32 indexed prevDeposit,
+        Deposit deposit
+    );
 
     constructor() VRFConsumerBaseV2Plus(address(this)) {}
 
@@ -52,9 +63,6 @@ abstract contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
 
         s_vrfCoordinator = IVRFCoordinatorV2Plus(_vrfCoordinator);
 
-        pool = 0;
-        lastDepositId = bytes32(0);
-        status = RaffleStatus.FINISHED;
         USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     }
 
@@ -117,11 +125,18 @@ abstract contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
             sender: msg.sender,
             amount: deposited,
             point: pool - deposited,
-            prevDeposit: lastDepositId
+            prevDeposit: depositState.lastDepositId
         });
 
-        addNode(depositDto);
+        depositState.addNode(depositDto);
         status = RaffleStatus.OPEN;
+
+        emit Deposited(
+            depositDto.sender,
+            depositState.lastDepositId,
+            depositDto.prevDeposit,
+            depositDto
+        );
     }
 
     function permitDeposit(
@@ -150,16 +165,19 @@ abstract contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
 
         require(status == RaffleStatus.CLOSED, "Raffle is not closed");
 
-        if (nextDepositId == lastDepositId && depositId == lastDepositId) {
+        if (
+            nextDepositId == depositState.lastDepositId &&
+            depositId == depositState.lastDepositId
+        ) {
             _withdrawLast(depositId);
             return;
         }
 
-        Deposit memory depositNode = deposits[depositId];
-        Deposit memory nextDepositNode = deposits[nextDepositId];
+        Deposit memory depositNode = depositState.deposits[depositId];
+        Deposit memory nextDepositNode = depositState.deposits[nextDepositId];
 
-        require(!isEmpty(depositId), "Deposit not found");
-        require(!isEmpty(nextDepositId), "Next deposit not found");
+        require(!depositState.isEmpty(depositId), "Deposit not found");
+        require(!depositState.isEmpty(nextDepositId), "Next deposit not found");
 
         require(
             depositNode.raffleId == raffleId,
@@ -188,16 +206,16 @@ abstract contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
         TransferHelper.safeTransfer(USDT, depositNode.sender, pool);
 
         raffleId++;
-        lastDepositId = bytes32(0);
+        depositState.lastDepositId = bytes32(0);
         pool = 0;
         status = RaffleStatus.FINISHED;
     }
 
     function _withdrawLast(bytes32 _depositId) internal {
         uint256 random = randomWords[0] % pool;
-        Deposit memory depositNode = deposits[_depositId];
+        Deposit memory depositNode = depositState.deposits[_depositId];
 
-        require(!isEmpty(_depositId), "Deposit not found");
+        require(!depositState.isEmpty(_depositId), "Deposit not found");
 
         require(
             depositNode.raffleId == raffleId,
@@ -217,11 +235,12 @@ abstract contract Raffle is DepositStorage, VRFConsumerBaseV2Plus {
         TransferHelper.safeTransfer(USDT, depositNode.sender, pool);
 
         raffleId++;
-        lastDepositId = bytes32(0);
+        depositState.lastDepositId = bytes32(0);
         pool = 0;
         status = RaffleStatus.FINISHED;
     }
 
+    //TODO only after some time passed
     function requestRandomWords() external onlyOwner {
         requestId = s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({

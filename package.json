@@ -6,7 +6,6 @@
     "clean": "hardhat clean",
     "compile": "hardhat compile",
     "cc": "hardhat clean & hardhat compile",
-    "build": "run-s clean compile",
     "test": "hardhat test",
     "coverage": "cross-env SOLIDITY_COVERAGE=true hardhat coverage --solcoverjs ./.solcover.json",
     "deploy": "hardhat ignition deploy",
