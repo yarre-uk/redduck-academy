@@ -15,7 +15,6 @@
 | contracts/Raffle/MyProxy.sol | [object Promise] |
 | contracts/Raffle/Raffle.sol | [object Promise] |
 | contracts/Raffle/RaffleExtended.sol | [object Promise] |
-| contracts/utils/Merkle.sol | [object Promise] |
 
 
 ### Contracts Description Table
@@ -89,7 +88,7 @@
 ||||||
 | **Raffle** | Implementation | VRFConsumerBaseV2Plus, AutomationCompatibleInterface |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
-| └ | initialize | Public ❗️ | 🛑  |NO❗️ |
+| └ | initialize | Public ❗️ | 🛑  | onlyOwner |
 | └ | deposit | Public ❗️ | 🛑  |NO❗️ |
 | └ | permitDeposit | Public ❗️ | 🛑  |NO❗️ |
 | └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
@@ -102,9 +101,6 @@
 | └ | setForwarderAddress | External ❗️ | 🛑  | onlyOwner |
 | └ | setWhitelist | Public ❗️ | 🛑  | onlyOwner |
 | └ | getChance | Public ❗️ |   |NO❗️ |
-||||||
-| **Merkle** | Implementation |  |||
-| └ | checkProof | Public ❗️ |   |NO❗️ |
 
 
 ### Legend

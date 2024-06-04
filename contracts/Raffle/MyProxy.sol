@@ -6,13 +6,7 @@ import "@openzeppelin/contracts/proxy/Proxy.sol";
 import "hardhat/console.sol";
 
 contract MyProxy is Ownable, Proxy {
-    constructor(address _initialImplementation) Ownable(msg.sender) {
-        uint256 implementationPos = implementationPosition;
-
-        assembly {
-            sstore(implementationPos, _initialImplementation)
-        }
-    }
+    constructor() Ownable(msg.sender) {}
 
     uint256 constant implementationPosition =
         uint256(keccak256("eip1967.proxy.implementation")) - 1;

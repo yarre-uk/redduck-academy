@@ -47,9 +47,13 @@ abstract contract Raffle is
 
     using DepositStorage for State;
 
+    event RequestSent(uint256 requestId, uint32 numWords);
+    event RequestFulfilled(uint256 requestId, uint256[] randomWords);
+
     event RaffleStarted(uint256 indexed raffleId);
     event RaffleClosed(uint256 indexed raffleId);
     event RaffleFinished(uint256 indexed raffleId);
+
     event Deposited(
         address indexed sender,
         bytes32 indexed id,
@@ -64,14 +68,12 @@ abstract contract Raffle is
         IUniswapV2Router02 _uniswapRouter,
         uint64 _subscriptionId,
         bytes32 _keyHash,
-        address _vrfCoordinator,
-        address _forwarderAddress
-    ) public virtual {
+        address _vrfCoordinator
+    ) public virtual onlyOwner {
         whitelist = _approvedTokens;
         uniswapRouter = _uniswapRouter;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
-        forwarderAddress = _forwarderAddress;
 
         s_vrfCoordinator = IVRFCoordinatorV2Plus(_vrfCoordinator);
 

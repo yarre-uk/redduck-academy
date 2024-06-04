@@ -62,9 +62,9 @@ describe("Raffle", () => {
 
     const _contract = await new RaffleExtended__factory(owner).deploy();
 
-    const _proxyContract = await new MyProxy__factory(owner).deploy(
-      await _contract.getAddress(),
-    );
+    const _proxyContract = await new MyProxy__factory(owner).deploy();
+
+    await _proxyContract.setImplementation(await _contract.getAddress());
 
     const proxyContract = await ethers.getContractAt(
       "RaffleExtended",
@@ -76,7 +76,6 @@ describe("Raffle", () => {
       uniswapV2Router,
       0n,
       ethers.randomBytes(32),
-      owner.address,
       owner.address,
     );
 

@@ -1,8 +1,9 @@
-// import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-// import { ethers } from "hardhat";
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-// export default buildModule("Raffle", (m) => {
-//   const contract = m.contract("Raffle", []);
+export default buildModule("Raffle", (m) => {
+  const raffle = m.contract("RaffleExtended", []);
 
-//   return { contract };
-// });
+  const proxy = m.contract("MyProxy", []);
+
+  return { raffle, proxy };
+});
