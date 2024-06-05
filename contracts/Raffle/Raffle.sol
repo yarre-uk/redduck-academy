@@ -4,7 +4,6 @@ pragma solidity 0.8.24;
 import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import { IUniswapV2Router02 } from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
-import { AggregatorV3Interface } from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import { VRFV2PlusClient } from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 import { IVRFCoordinatorV2Plus } from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
 import { VRFConsumerBaseV2Plus } from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
@@ -13,7 +12,6 @@ import { AutomationCompatibleInterface } from "@chainlink/contracts/src/v0.8/aut
 import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
 import { DepositStorage, State, Deposit } from "./DepositStorage.sol";
-import "hardhat/console.sol";
 
 enum RaffleStatus {
     FINISHED,
@@ -30,7 +28,7 @@ abstract contract Raffle is
     uint32 constant NUM_WORDS = 1;
     uint256[] public randomWords;
     uint256 internal requestId;
-    uint64 private subscriptionId;
+    uint256 private subscriptionId;
     bytes32 private keyHash;
 
     uint256 public raffleId;
@@ -66,7 +64,7 @@ abstract contract Raffle is
     function initialize(
         address[] memory _approvedTokens,
         IUniswapV2Router02 _uniswapRouter,
-        uint64 _subscriptionId,
+        uint256 _subscriptionId,
         bytes32 _keyHash,
         address _vrfCoordinator
     ) public virtual onlyOwner {
@@ -279,6 +277,28 @@ abstract contract Raffle is
         status = RaffleStatus.CLOSED;
 
         emit RaffleClosed(raffleId);
+        emit RequestFulfilled(_requestId, _randomWords);
+    }
+
+    function requestRandomWords() public onlyOwner {
+        _requestRandomWords();
+    }
+
+    function _requestRandomWords() internal {
+        requestId = s_vrfCoordinator.requestRandomWords(
+            VRFV2PlusClient.RandomWordsRequest({
+                keyHash: keyHash,
+                subId: subscriptionId,
+                requestConfirmations: REQUEST_CONFIRMATIONS,
+                callbackGasLimit: CALLBACK_GAS_LIMIT,
+                numWords: NUM_WORDS,
+                extraArgs: VRFV2PlusClient._argsToBytes(
+                    VRFV2PlusClient.ExtraArgsV1({ nativePayment: true })
+                )
+            })
+        );
+
+        emit RequestSent(requestId, NUM_WORDS);
     }
 
     function checkUpkeep(
@@ -297,17 +317,6 @@ abstract contract Raffle is
             "Caller is not the Chainlink Keeper Registry"
         );
 
-        requestId = s_vrfCoordinator.requestRandomWords(
-            VRFV2PlusClient.RandomWordsRequest({
-                keyHash: keyHash,
-                subId: subscriptionId,
-                requestConfirmations: REQUEST_CONFIRMATIONS,
-                callbackGasLimit: CALLBACK_GAS_LIMIT,
-                numWords: NUM_WORDS,
-                extraArgs: VRFV2PlusClient._argsToBytes(
-                    VRFV2PlusClient.ExtraArgsV1({ nativePayment: true })
-                )
-            })
-        );
+        _requestRandomWords();
     }
 }

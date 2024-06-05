@@ -3,7 +3,6 @@ pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";
-import "hardhat/console.sol";
 
 contract MyProxy is Ownable, Proxy {
     constructor() Ownable(msg.sender) {}

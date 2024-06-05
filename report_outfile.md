@@ -94,6 +94,8 @@
 | └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
 | └ | _withdrawLast | Internal 🔒 | 🛑  | |
 | └ | fulfillRandomWords | Internal 🔒 | 🛑  | |
+| └ | requestRandomWords | Public ❗️ | 🛑  | onlyOwner |
+| └ | _requestRandomWords | Internal 🔒 | 🛑  | |
 | └ | checkUpkeep | External ❗️ |   |NO❗️ |
 | └ | performUpkeep | External ❗️ | 🛑  |NO❗️ |
 ||||||
