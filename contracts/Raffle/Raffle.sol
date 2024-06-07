@@ -34,14 +34,13 @@ abstract contract Raffle is
     uint256 public raffleId;
     uint256 public pool = 0;
     RaffleStatus public status;
-    address[] internal whitelist;
-    State internal depositState;
-    uint256 internal timeToClose;
-    uint256 internal startedAt;
+    address[] public whitelist;
+    State public depositState;
+    uint256 public timeToClose;
+    uint256 public startedAt;
 
     address public forwarderAddress;
     IUniswapV2Router02 internal uniswapRouter;
-    address internal USDT;
 
     using DepositStorage for State;
 
@@ -75,7 +74,6 @@ abstract contract Raffle is
 
         s_vrfCoordinator = IVRFCoordinatorV2Plus(_vrfCoordinator);
 
-        USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
         timeToClose = 5 minutes;
         startedAt = block.timestamp;
     }
@@ -87,11 +85,15 @@ abstract contract Raffle is
         );
         require(whitelist[_tokenIndex] != address(0), "Wrong token index");
         require(_amount > 0, "Amount should be greater than 0");
-        require(startedAt + timeToClose > block.timestamp, "Raffle is closed");
+        require(
+            block.timestamp < startedAt + timeToClose ||
+                status == RaffleStatus.FINISHED,
+            "Raffle is closed"
+        );
 
         uint256 deposited;
 
-        if (whitelist[_tokenIndex] != USDT) {
+        if (_tokenIndex != 0) {
             TransferHelper.safeTransferFrom(
                 whitelist[_tokenIndex],
                 msg.sender,
@@ -107,7 +109,7 @@ abstract contract Raffle is
 
             address[] memory path = new address[](2);
             path[0] = whitelist[_tokenIndex];
-            path[1] = USDT;
+            path[1] = whitelist[0];
 
             uint[] memory targetAmounts = uniswapRouter.getAmountsOut(
                 _amount,
@@ -126,7 +128,7 @@ abstract contract Raffle is
             deposited = result[result.length - 1];
         } else {
             TransferHelper.safeTransferFrom(
-                USDT,
+                whitelist[0],
                 msg.sender,
                 address(this),
                 _amount
@@ -226,7 +228,7 @@ abstract contract Raffle is
             "This user is not a winner"
         );
 
-        TransferHelper.safeTransfer(USDT, depositNode.sender, pool);
+        TransferHelper.safeTransfer(whitelist[0], depositNode.sender, pool);
 
         raffleId++;
         depositState.lastDepositId = bytes32(0);
@@ -257,7 +259,7 @@ abstract contract Raffle is
             "This user is not a winner"
         );
 
-        TransferHelper.safeTransfer(USDT, depositNode.sender, pool);
+        TransferHelper.safeTransfer(whitelist[0], depositNode.sender, pool);
 
         raffleId++;
         depositState.lastDepositId = bytes32(0);

@@ -1,25 +1,24 @@
 import { ethers } from "hardhat";
 
 import { abi } from "../artifacts/contracts/Raffle/RaffleExtended.sol/RaffleExtended.json";
-import { PRIVATE_KEY_OWNER } from "../env";
+import { PRIVATE_KEY } from "../env";
 
 async function main() {
   const provider = ethers.provider;
-  const wallet = ethers.Wallet.fromPhrase(PRIVATE_KEY_OWNER).connect(provider);
+  const wallet = new ethers.Wallet(PRIVATE_KEY).connect(provider);
 
   const raffleContract = new ethers.Contract(
-    "0x8D58396C062586d9c0F42c8b296c3977789F9C9A",
+    "0x9bf690f687c72d3ef8a2cbda7e49642cf9f9e39f",
     abi,
     wallet,
   );
 
-  const usdt = "0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0";
-  const usdc = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
+  const weth = "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9";
   const link = "0x779877A7B0D9E8603169DdbD7836e478b4624789";
 
-  const approvedTokens: `0x${string}`[] = [usdt, usdc, link];
+  const approvedTokens: `0x${string}`[] = [weth, link];
 
-  const uniswapRouter = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
+  const uniswapRouter = "0x425141165d3DE9FEC831896C016617a52363b687";
 
   const subscriptionId =
     1230560835588391700105489398649300104699330861740292705239295065739960848769n;

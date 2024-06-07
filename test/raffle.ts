@@ -103,7 +103,7 @@ describe("Raffle", () => {
   describe("Raffle", () => {
     describe("Basic deposits", () => {
       it("Should deposit once", async () => {
-        const { contract, usdcContract, accountUsdc, usdtContract } =
+        const { contract, usdcContract, accountUsdc, asd1Contract } =
           await loadFixture(deploy);
 
         const usdcSigner = contract.connect(accountUsdc);
@@ -115,7 +115,7 @@ describe("Raffle", () => {
         await usdcSigner.deposit(1000n, 2);
 
         expect(await contract.pool()).to.equal(
-          await usdtContract.balanceOf(await contract.getAddress()),
+          await asd1Contract.balanceOf(await contract.getAddress()),
         );
       });
 
@@ -126,6 +126,7 @@ describe("Raffle", () => {
           accountUsdc,
           usdtContract,
           accountUsdt,
+          asd1Contract,
         } = await loadFixture(deploy);
         const usdcSigner = contract.connect(accountUsdc);
         const usdtSigner = contract.connect(accountUsdt);
@@ -141,12 +142,12 @@ describe("Raffle", () => {
         await usdtSigner.deposit(1000n, 1);
 
         expect(await contract.pool()).to.equal(
-          await usdtContract.balanceOf(await contract.getAddress()),
+          await asd1Contract.balanceOf(await contract.getAddress()),
         );
       });
 
       it("Should deposit link", async () => {
-        const { contract, linkContract, accountLink, usdtContract } =
+        const { contract, linkContract, accountLink, asd1Contract } =
           await loadFixture(deploy);
         const linkSigner = contract.connect(accountLink);
         await linkContract
@@ -155,7 +156,7 @@ describe("Raffle", () => {
         await linkSigner.deposit(100000000000000n, 3);
 
         expect(await contract.pool()).to.equal(
-          await usdtContract.balanceOf(await contract.getAddress()),
+          await asd1Contract.balanceOf(await contract.getAddress()),
         );
       });
 
@@ -181,6 +182,7 @@ describe("Raffle", () => {
           accountUsdc,
           usdtContract,
           accountUsdt,
+          asd1Contract,
         } = await loadFixture(deploy);
         const usdcSigner = contract.connect(accountUsdc);
         const usdtSigner = contract.connect(accountUsdt);
@@ -202,7 +204,7 @@ describe("Raffle", () => {
         });
 
         const prePool = await contract.pool();
-        const preBalance = await usdtContract.balanceOf(accountUsdt.address);
+        const preBalance = await asd1Contract.balanceOf(accountUsdt.address);
 
         await time.increase(60 * 60);
 
@@ -210,7 +212,7 @@ describe("Raffle", () => {
         await contract.withdraw(resp[0].id, resp[1].id);
 
         expect(await contract.pool()).to.equal(0n);
-        expect(await usdtContract.balanceOf(accountUsdt.address)).to.equal(
+        expect(await asd1Contract.balanceOf(accountUsdt.address)).to.equal(
           preBalance + prePool,
         );
       });
@@ -222,6 +224,7 @@ describe("Raffle", () => {
           accountUsdc,
           usdtContract,
           accountUsdt,
+          asd1Contract,
         } = await loadFixture(deploy);
         const usdcSigner = contract.connect(accountUsdc);
         const usdtSigner = contract.connect(accountUsdt);
@@ -245,22 +248,22 @@ describe("Raffle", () => {
         });
 
         const prePool = await contract.pool();
-        const preBalance = await usdtContract.balanceOf(accountUsdc.address);
+        const preBalance = await asd1Contract.balanceOf(accountUsdc.address);
 
         await time.increase(60 * 60);
 
-        await contract.rawFulfillRandomWords(0n, [2000n]);
+        await contract.rawFulfillRandomWords(0n, [434759744970n]);
         await contract.withdraw(resp[1].id, resp[1].id);
 
         expect(await contract.pool()).to.equal(0n);
-        expect(await usdtContract.balanceOf(accountUsdc.address)).to.equal(
+        expect(await asd1Contract.balanceOf(accountUsdc.address)).to.equal(
           preBalance + prePool,
         );
       });
     });
 
     it("Should permit", async () => {
-      const { contract, usdcContract, accountUsdc, usdtContract } =
+      const { contract, usdcContract, accountUsdc, asd1Contract } =
         await loadFixture(deploy);
 
       const usdcSigner = contract.connect(accountUsdc);
@@ -309,7 +312,7 @@ describe("Raffle", () => {
         console.error("Error signing permit:", error);
       }
       expect(await contract.pool()).to.equal(
-        await usdtContract.balanceOf(await contract.getAddress()),
+        await asd1Contract.balanceOf(await contract.getAddress()),
       );
     });
   });
