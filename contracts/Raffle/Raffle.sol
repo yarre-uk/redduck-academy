@@ -13,6 +13,8 @@ import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC2
 
 import { DepositStorage, State, Deposit } from "./DepositStorage.sol";
 
+import "hardhat/console.sol";
+
 enum RaffleStatus {
     FINISHED,
     OPEN,
@@ -60,13 +62,14 @@ abstract contract Raffle is
 
     constructor() VRFConsumerBaseV2Plus(address(this)) {}
 
+    //owner
     function initialize(
         address[] memory _approvedTokens,
         IUniswapV2Router02 _uniswapRouter,
         uint256 _subscriptionId,
         bytes32 _keyHash,
         address _vrfCoordinator
-    ) public virtual onlyOwner {
+    ) public virtual {
         whitelist = _approvedTokens;
         uniswapRouter = _uniswapRouter;
         keyHash = _keyHash;
@@ -76,6 +79,8 @@ abstract contract Raffle is
 
         timeToClose = 5 minutes;
         startedAt = block.timestamp;
+
+        console.log("Initialize");
     }
 
     function deposit(uint256 _amount, uint256 _tokenIndex) public {
@@ -160,6 +165,8 @@ abstract contract Raffle is
             depositDto.prevDeposit,
             depositDto
         );
+
+        console.log("Deposit");
     }
 
     function permitDeposit(

@@ -82,13 +82,14 @@
 ||||||
 | **MyProxy** | Implementation | Ownable, Proxy |||
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
-| └ | setImplementation | External ❗️ | 🛑  | onlyOwner |
+| └ | setImplementation | External ❗️ | 🛑  |NO❗️ |
+| └ | getImplementation | External ❗️ |   |NO❗️ |
 | └ | _implementation | Internal 🔒 |   | |
 | └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
 ||||||
 | **Raffle** | Implementation | VRFConsumerBaseV2Plus, AutomationCompatibleInterface |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
-| └ | initialize | Public ❗️ | 🛑  | onlyOwner |
+| └ | initialize | Public ❗️ | 🛑  |NO❗️ |
 | └ | deposit | Public ❗️ | 🛑  |NO❗️ |
 | └ | permitDeposit | Public ❗️ | 🛑  |NO❗️ |
 | └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
