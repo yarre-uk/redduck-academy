@@ -82,7 +82,7 @@
 ||||||
 | **MyProxy** | Implementation | Ownable, Proxy |||
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
-| └ | setImplementation | External ❗️ | 🛑  |NO❗️ |
+| └ | setImplementation | External ❗️ | 🛑  | onlyOwner |
 | └ | getImplementation | External ❗️ |   |NO❗️ |
 | └ | _implementation | Internal 🔒 |   | |
 | └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
@@ -94,8 +94,9 @@
 | └ | permitDeposit | Public ❗️ | 🛑  |NO❗️ |
 | └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
 | └ | _withdrawLast | Internal 🔒 | 🛑  | |
+| └ | fulfillRandomWordsTest | Public ❗️ | 🛑  |NO❗️ |
 | └ | fulfillRandomWords | Internal 🔒 | 🛑  | |
-| └ | requestRandomWords | Public ❗️ | 🛑  | onlyOwner |
+| └ | requestRandomWords | Public ❗️ | 🛑  |NO❗️ |
 | └ | _requestRandomWords | Internal 🔒 | 🛑  | |
 | └ | checkUpkeep | External ❗️ |   |NO❗️ |
 | └ | performUpkeep | External ❗️ | 🛑  |NO❗️ |
@@ -104,6 +105,8 @@
 | └ | setForwarderAddress | External ❗️ | 🛑  | onlyOwner |
 | └ | setWhitelist | Public ❗️ | 🛑  | onlyOwner |
 | └ | getChance | Public ❗️ |   |NO❗️ |
+| └ | getDeposit | Public ❗️ |   |NO❗️ |
+| └ | getDeposits | Public ❗️ |   |NO❗️ |
 
 
 ### Legend

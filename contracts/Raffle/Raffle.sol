@@ -54,15 +54,18 @@ abstract contract Raffle is
     event RaffleFinished(uint256 indexed raffleId);
 
     event Deposited(
+        uint256 indexed raffleId,
         address indexed sender,
-        bytes32 indexed id,
         bytes32 indexed prevDeposit,
-        Deposit deposit
+        bytes32 id
     );
 
-    constructor() VRFConsumerBaseV2Plus(address(this)) {}
+    constructor() VRFConsumerBaseV2Plus(address(this)) {
+        console.log("Constructor");
+        console.log(msg.sender);
+        console.log(owner());
+    }
 
-    //owner
     function initialize(
         address[] memory _approvedTokens,
         IUniswapV2Router02 _uniswapRouter,
@@ -98,6 +101,13 @@ abstract contract Raffle is
 
         uint256 deposited;
 
+        console.log(
+            "Deposit -> ",
+            _amount,
+            _tokenIndex,
+            whitelist[_tokenIndex]
+        );
+
         if (_tokenIndex != 0) {
             TransferHelper.safeTransferFrom(
                 whitelist[_tokenIndex],
@@ -116,11 +126,15 @@ abstract contract Raffle is
             path[0] = whitelist[_tokenIndex];
             path[1] = whitelist[0];
 
+            console.log("Path -> ", whitelist[_tokenIndex], whitelist[0]);
+
             uint[] memory targetAmounts = uniswapRouter.getAmountsOut(
                 _amount,
                 path
             );
             uint256 minAmountOut = targetAmounts[targetAmounts.length - 1];
+
+            console.log("minAmountOut -> ", minAmountOut);
 
             uint256[] memory result = uniswapRouter.swapExactTokensForTokens(
                 _amount,
@@ -132,6 +146,13 @@ abstract contract Raffle is
 
             deposited = result[result.length - 1];
         } else {
+            console.log(
+                "Deposit -> ",
+                _amount,
+                _tokenIndex,
+                whitelist[_tokenIndex]
+            );
+
             TransferHelper.safeTransferFrom(
                 whitelist[0],
                 msg.sender,
@@ -142,6 +163,8 @@ abstract contract Raffle is
         }
 
         pool += deposited;
+
+        console.log("Pool -> ", pool);
 
         Deposit memory depositDto = Deposit({
             raffleId: raffleId,
@@ -160,10 +183,10 @@ abstract contract Raffle is
         }
 
         emit Deposited(
+            raffleId,
             depositDto.sender,
-            depositState.lastDepositId,
             depositDto.prevDeposit,
-            depositDto
+            depositState.lastDepositId
         );
 
         console.log("Deposit");
@@ -276,6 +299,18 @@ abstract contract Raffle is
         emit RaffleFinished(raffleId - 1);
     }
 
+    //TODO remove
+    function fulfillRandomWordsTest(
+        uint256 _requestId,
+        uint256[] memory _randomWords
+    ) public {
+        randomWords = _randomWords;
+        status = RaffleStatus.CLOSED;
+
+        emit RaffleClosed(raffleId);
+        emit RequestFulfilled(_requestId, _randomWords);
+    }
+
     function fulfillRandomWords(
         uint256 _requestId,
         uint256[] memory _randomWords
@@ -289,7 +324,7 @@ abstract contract Raffle is
         emit RequestFulfilled(_requestId, _randomWords);
     }
 
-    function requestRandomWords() public onlyOwner {
+    function requestRandomWords() public {
         _requestRandomWords();
     }
 

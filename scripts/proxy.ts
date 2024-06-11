@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { abi as raffleAbi } from "../artifacts/contracts/Raffle/RaffleExtended.sol/RaffleExtended.json";
 import { PRIVATE_KEY } from "../env";
 
-const proxyAddress = "0x8aB7633cb0eE890Be63Ef431c59fe56F67851337";
+const proxyAddress = "0xEABAb27977ba8A7Fe7d1A437bbc0EE782bdC776c";
 
 async function main() {
   const provider = ethers.provider;

@@ -1,19 +1,8 @@
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-verify";
-import { type HardhatUserConfig, task } from "hardhat/config";
-import "./scripts/initialize";
+import { type HardhatUserConfig } from "hardhat/config";
 
 import { ETHERSCAN_API_KEY, INFURA_API_KEY, PRIVATE_KEY } from "./env";
-
-task("initialize", "Initializes the contract")
-  .addParam("proxy")
-  .addParam("contract")
-  .setAction(async (taskArgs, hre) => {
-    await hre.run("initialize:internal", {
-      proxy: taskArgs.proxy,
-      contract: taskArgs.contract,
-    });
-  });
 
 const config: HardhatUserConfig = {
   solidity: "0.8.24",
