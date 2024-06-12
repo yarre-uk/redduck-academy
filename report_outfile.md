@@ -89,14 +89,13 @@
 ||||||
 | **Raffle** | Implementation | VRFConsumerBaseV2Plus, AutomationCompatibleInterface |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
-| └ | initialize | Public ❗️ | 🛑  |NO❗️ |
+| └ | initialize | Public ❗️ | 🛑  | onlyOwner |
 | └ | deposit | Public ❗️ | 🛑  |NO❗️ |
 | └ | permitDeposit | Public ❗️ | 🛑  |NO❗️ |
+| └ | concludeWithdraw | Internal 🔒 | 🛑  | |
 | └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
 | └ | _withdrawLast | Internal 🔒 | 🛑  | |
-| └ | fulfillRandomWordsTest | Public ❗️ | 🛑  |NO❗️ |
 | └ | fulfillRandomWords | Internal 🔒 | 🛑  | |
-| └ | requestRandomWords | Public ❗️ | 🛑  |NO❗️ |
 | └ | _requestRandomWords | Internal 🔒 | 🛑  | |
 | └ | checkUpkeep | External ❗️ |   |NO❗️ |
 | └ | performUpkeep | External ❗️ | 🛑  |NO❗️ |

@@ -13,8 +13,6 @@ import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC2
 
 import { DepositStorage, State, Deposit } from "./DepositStorage.sol";
 
-import "hardhat/console.sol";
-
 enum RaffleStatus {
     FINISHED,
     OPEN,
@@ -60,11 +58,7 @@ abstract contract Raffle is
         bytes32 id
     );
 
-    constructor() VRFConsumerBaseV2Plus(address(this)) {
-        console.log("Constructor");
-        console.log(msg.sender);
-        console.log(owner());
-    }
+    constructor() VRFConsumerBaseV2Plus(address(this)) {}
 
     function initialize(
         address[] memory _approvedTokens,
@@ -72,7 +66,7 @@ abstract contract Raffle is
         uint256 _subscriptionId,
         bytes32 _keyHash,
         address _vrfCoordinator
-    ) public virtual {
+    ) public virtual onlyOwner {
         whitelist = _approvedTokens;
         uniswapRouter = _uniswapRouter;
         keyHash = _keyHash;
@@ -82,8 +76,6 @@ abstract contract Raffle is
 
         timeToClose = 5 minutes;
         startedAt = block.timestamp;
-
-        console.log("Initialize");
     }
 
     function deposit(uint256 _amount, uint256 _tokenIndex) public {
@@ -100,13 +92,6 @@ abstract contract Raffle is
         );
 
         uint256 deposited;
-
-        console.log(
-            "Deposit -> ",
-            _amount,
-            _tokenIndex,
-            whitelist[_tokenIndex]
-        );
 
         if (_tokenIndex != 0) {
             TransferHelper.safeTransferFrom(
@@ -126,15 +111,11 @@ abstract contract Raffle is
             path[0] = whitelist[_tokenIndex];
             path[1] = whitelist[0];
 
-            console.log("Path -> ", whitelist[_tokenIndex], whitelist[0]);
-
             uint[] memory targetAmounts = uniswapRouter.getAmountsOut(
                 _amount,
                 path
             );
             uint256 minAmountOut = targetAmounts[targetAmounts.length - 1];
-
-            console.log("minAmountOut -> ", minAmountOut);
 
             uint256[] memory result = uniswapRouter.swapExactTokensForTokens(
                 _amount,
@@ -146,13 +127,6 @@ abstract contract Raffle is
 
             deposited = result[result.length - 1];
         } else {
-            console.log(
-                "Deposit -> ",
-                _amount,
-                _tokenIndex,
-                whitelist[_tokenIndex]
-            );
-
             TransferHelper.safeTransferFrom(
                 whitelist[0],
                 msg.sender,
@@ -163,8 +137,6 @@ abstract contract Raffle is
         }
 
         pool += deposited;
-
-        console.log("Pool -> ", pool);
 
         Deposit memory depositDto = Deposit({
             raffleId: raffleId,
@@ -188,8 +160,6 @@ abstract contract Raffle is
             depositDto.prevDeposit,
             depositState.lastDepositId
         );
-
-        console.log("Deposit");
     }
 
     function permitDeposit(
@@ -213,12 +183,20 @@ abstract contract Raffle is
         deposit(_amount, _tokenIndex);
     }
 
-    function withdraw(bytes32 depositId, bytes32 nextDepositId) public {
-        uint256 random = randomWords[0] % pool;
+    function concludeWithdraw(Deposit storage depositNode) internal {
+        TransferHelper.safeTransfer(whitelist[0], depositNode.sender, pool);
 
+        raffleId++;
+        depositState.lastDepositId = bytes32(0);
+        pool = 0;
+        status = RaffleStatus.FINISHED;
+
+        emit RaffleFinished(raffleId - 1);
+    }
+
+    function withdraw(bytes32 depositId, bytes32 nextDepositId) public {
         require(status == RaffleStatus.CLOSED, "Raffle is not closed");
         require(block.timestamp > startedAt + timeToClose, "Raffle is open");
-        // require(startedAt + timeToClose > block.timestamp, "Raffle is closed");
 
         if (
             nextDepositId == depositState.lastDepositId &&
@@ -228,8 +206,9 @@ abstract contract Raffle is
             return;
         }
 
-        Deposit memory depositNode = depositState.deposits[depositId];
-        Deposit memory nextDepositNode = depositState.deposits[nextDepositId];
+        uint256 random = randomWords[0] % pool;
+        Deposit storage depositNode = depositState.deposits[depositId];
+        Deposit storage nextDepositNode = depositState.deposits[nextDepositId];
 
         require(!depositState.isEmpty(depositId), "Deposit not found");
         require(!depositState.isEmpty(nextDepositId), "Next deposit not found");
@@ -258,19 +237,12 @@ abstract contract Raffle is
             "This user is not a winner"
         );
 
-        TransferHelper.safeTransfer(whitelist[0], depositNode.sender, pool);
-
-        raffleId++;
-        depositState.lastDepositId = bytes32(0);
-        pool = 0;
-        status = RaffleStatus.FINISHED;
-
-        emit RaffleFinished(raffleId - 1);
+        concludeWithdraw(depositNode);
     }
 
     function _withdrawLast(bytes32 _depositId) internal {
         uint256 random = randomWords[0] % pool;
-        Deposit memory depositNode = depositState.deposits[_depositId];
+        Deposit storage depositNode = depositState.deposits[_depositId];
 
         require(!depositState.isEmpty(_depositId), "Deposit not found");
 
@@ -289,26 +261,7 @@ abstract contract Raffle is
             "This user is not a winner"
         );
 
-        TransferHelper.safeTransfer(whitelist[0], depositNode.sender, pool);
-
-        raffleId++;
-        depositState.lastDepositId = bytes32(0);
-        pool = 0;
-        status = RaffleStatus.FINISHED;
-
-        emit RaffleFinished(raffleId - 1);
-    }
-
-    //TODO remove
-    function fulfillRandomWordsTest(
-        uint256 _requestId,
-        uint256[] memory _randomWords
-    ) public {
-        randomWords = _randomWords;
-        status = RaffleStatus.CLOSED;
-
-        emit RaffleClosed(raffleId);
-        emit RequestFulfilled(_requestId, _randomWords);
+        concludeWithdraw(depositNode);
     }
 
     function fulfillRandomWords(
@@ -322,10 +275,6 @@ abstract contract Raffle is
 
         emit RaffleClosed(raffleId);
         emit RequestFulfilled(_requestId, _randomWords);
-    }
-
-    function requestRandomWords() public {
-        _requestRandomWords();
     }
 
     function _requestRandomWords() internal {
@@ -346,7 +295,7 @@ abstract contract Raffle is
     }
 
     function checkUpkeep(
-        bytes calldata _checkData
+        bytes calldata /*_checkData*/
     ) external view returns (bool upkeepNeeded, bytes memory performData) {
         return (
             block.timestamp > startedAt + timeToClose &&
@@ -355,7 +304,7 @@ abstract contract Raffle is
         );
     }
 
-    function performUpkeep(bytes calldata _performData) external {
+    function performUpkeep(bytes calldata /*_performData*/) external {
         require(
             msg.sender == forwarderAddress,
             "Caller is not the Chainlink Keeper Registry"
