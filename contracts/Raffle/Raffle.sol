@@ -40,7 +40,7 @@ abstract contract Raffle is
     uint256 public startedAt;
 
     address public forwarderAddress;
-    IUniswapV2Router02 internal uniswapRouter;
+    IUniswapV2Router02 public uniswapRouter;
 
     using DepositStorage for State;
 
@@ -286,7 +286,7 @@ abstract contract Raffle is
                 callbackGasLimit: CALLBACK_GAS_LIMIT,
                 numWords: NUM_WORDS,
                 extraArgs: VRFV2PlusClient._argsToBytes(
-                    VRFV2PlusClient.ExtraArgsV1({ nativePayment: true })
+                    VRFV2PlusClient.ExtraArgsV1({ nativePayment: false })
                 )
             })
         );

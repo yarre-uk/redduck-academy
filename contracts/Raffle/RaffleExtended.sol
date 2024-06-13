@@ -20,7 +20,7 @@ contract RaffleExtended is Raffle {
             total += depositState.deposits[_ids[i]].amount;
         }
 
-        total = (total * 1000000) / pool;
+        total = (total * 100000) / pool;
     }
 
     function getDeposit(bytes32 _id) public view returns (Deposit memory) {
