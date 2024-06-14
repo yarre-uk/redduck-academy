@@ -1,10 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { Raffle } from "./Raffle.sol";
+import { Raffle, RaffleStatus } from "./Raffle.sol";
+import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import { Deposit } from "./DepositStorage.sol";
 
 contract RaffleExtended is Raffle {
+    uint256 public X;
+    uint256 public Y;
+    uint256 public Z;
+    address public founder;
+    address public staking;
+
+    function setWaitingForRandomness(
+        bool _waitingForRandomness
+    ) public onlyOwner {
+        waitingForRandomness = _waitingForRandomness;
+    }
+
     function setForwarderAddress(address _forwarderAddress) external onlyOwner {
         forwarderAddress = _forwarderAddress;
     }
@@ -37,5 +50,44 @@ contract RaffleExtended is Raffle {
         }
 
         return deposits;
+    }
+
+    function setX(uint256 _X) public onlyOwner {
+        X = _X;
+    }
+
+    function setY(uint256 _Y) public onlyOwner {
+        Y = _Y;
+    }
+
+    function setZ(uint256 _Z) public onlyOwner {
+        Z = _Z;
+    }
+
+    function setFounder(address _founder) public onlyOwner {
+        founder = _founder;
+    }
+
+    function setStaking(address _staking) public onlyOwner {
+        staking = _staking;
+    }
+
+    function concludeWithdraw(Deposit storage depositNode) internal override {
+        require(X + Y + Z == 100000, "Invalid distribution");
+
+        TransferHelper.safeTransfer(whitelist[0], staking, (pool * X) / 100000);
+        TransferHelper.safeTransfer(whitelist[0], founder, (pool * Y) / 100000);
+        TransferHelper.safeTransfer(
+            whitelist[0],
+            depositNode.sender,
+            (pool * Z) / 100000
+        );
+
+        raffleId++;
+        depositState.lastDepositId = bytes32(0);
+        pool = 0;
+        status = RaffleStatus.FINISHED;
+
+        emit RaffleFinished(raffleId - 1);
     }
 }

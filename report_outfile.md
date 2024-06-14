@@ -96,16 +96,24 @@
 | └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
 | └ | _withdrawLast | Internal 🔒 | 🛑  | |
 | └ | fulfillRandomWords | Internal 🔒 | 🛑  | |
+| └ | _requestRandomWordsAdmin | Public ❗️ | 🛑  | onlyOwner |
 | └ | _requestRandomWords | Internal 🔒 | 🛑  | |
 | └ | checkUpkeep | External ❗️ |   |NO❗️ |
 | └ | performUpkeep | External ❗️ | 🛑  |NO❗️ |
 ||||||
 | **RaffleExtended** | Implementation | Raffle |||
+| └ | setWaitingForRandomness | Public ❗️ | 🛑  | onlyOwner |
 | └ | setForwarderAddress | External ❗️ | 🛑  | onlyOwner |
 | └ | setWhitelist | Public ❗️ | 🛑  | onlyOwner |
 | └ | getChance | Public ❗️ |   |NO❗️ |
 | └ | getDeposit | Public ❗️ |   |NO❗️ |
 | └ | getDeposits | Public ❗️ |   |NO❗️ |
+| └ | setX | Public ❗️ | 🛑  | onlyOwner |
+| └ | setY | Public ❗️ | 🛑  | onlyOwner |
+| └ | setZ | Public ❗️ | 🛑  | onlyOwner |
+| └ | setFounder | Public ❗️ | 🛑  | onlyOwner |
+| └ | setStaking | Public ❗️ | 🛑  | onlyOwner |
+| └ | concludeWithdraw | Internal 🔒 | 🛑  | |
 
 
 ### Legend

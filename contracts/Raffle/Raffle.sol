@@ -23,7 +23,7 @@ abstract contract Raffle is
     VRFConsumerBaseV2Plus,
     AutomationCompatibleInterface
 {
-    uint32 constant CALLBACK_GAS_LIMIT = 100000;
+    uint32 constant CALLBACK_GAS_LIMIT = 500000;
     uint16 constant REQUEST_CONFIRMATIONS = 3;
     uint32 constant NUM_WORDS = 1;
     uint256[] public randomWords;
@@ -38,6 +38,7 @@ abstract contract Raffle is
     State public depositState;
     uint256 public timeToClose;
     uint256 public startedAt;
+    bool public waitingForRandomness;
 
     address public forwarderAddress;
     IUniswapV2Router02 public uniswapRouter;
@@ -183,16 +184,7 @@ abstract contract Raffle is
         deposit(_amount, _tokenIndex);
     }
 
-    function concludeWithdraw(Deposit storage depositNode) internal {
-        TransferHelper.safeTransfer(whitelist[0], depositNode.sender, pool);
-
-        raffleId++;
-        depositState.lastDepositId = bytes32(0);
-        pool = 0;
-        status = RaffleStatus.FINISHED;
-
-        emit RaffleFinished(raffleId - 1);
-    }
+    function concludeWithdraw(Deposit storage depositNode) internal virtual;
 
     function withdraw(bytes32 depositId, bytes32 nextDepositId) public {
         require(status == RaffleStatus.CLOSED, "Raffle is not closed");
@@ -272,9 +264,29 @@ abstract contract Raffle is
 
         randomWords = _randomWords;
         status = RaffleStatus.CLOSED;
+        waitingForRandomness = false;
 
         emit RaffleClosed(raffleId);
         emit RequestFulfilled(_requestId, _randomWords);
+    }
+
+    function _requestRandomWordsAdmin() public onlyOwner {
+        requestId = s_vrfCoordinator.requestRandomWords(
+            VRFV2PlusClient.RandomWordsRequest({
+                keyHash: keyHash,
+                subId: subscriptionId,
+                requestConfirmations: REQUEST_CONFIRMATIONS,
+                callbackGasLimit: CALLBACK_GAS_LIMIT,
+                numWords: NUM_WORDS,
+                extraArgs: VRFV2PlusClient._argsToBytes(
+                    VRFV2PlusClient.ExtraArgsV1({ nativePayment: false })
+                )
+            })
+        );
+
+        waitingForRandomness = true;
+
+        emit RequestSent(requestId, NUM_WORDS);
     }
 
     function _requestRandomWords() internal {
@@ -291,6 +303,8 @@ abstract contract Raffle is
             })
         );
 
+        waitingForRandomness = true;
+
         emit RequestSent(requestId, NUM_WORDS);
     }
 
@@ -299,7 +313,8 @@ abstract contract Raffle is
     ) external view returns (bool upkeepNeeded, bytes memory performData) {
         return (
             block.timestamp > startedAt + timeToClose &&
-                status == RaffleStatus.OPEN,
+                status == RaffleStatus.OPEN &&
+                !waitingForRandomness,
             ""
         );
     }
