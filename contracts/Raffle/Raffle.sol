@@ -184,7 +184,7 @@ abstract contract Raffle is
         deposit(_amount, _tokenIndex);
     }
 
-    function concludeWithdraw(Deposit storage depositNode) internal virtual;
+    function _concludeWithdraw(Deposit storage depositNode) internal virtual;
 
     function withdraw(bytes32 depositId, bytes32 nextDepositId) public {
         require(status == RaffleStatus.CLOSED, "Raffle is not closed");
@@ -229,7 +229,7 @@ abstract contract Raffle is
             "This user is not a winner"
         );
 
-        concludeWithdraw(depositNode);
+        _concludeWithdraw(depositNode);
     }
 
     function _withdrawLast(bytes32 _depositId) internal {
@@ -253,24 +253,24 @@ abstract contract Raffle is
             "This user is not a winner"
         );
 
-        concludeWithdraw(depositNode);
+        _concludeWithdraw(depositNode);
     }
 
     function fulfillRandomWords(
         uint256 _requestId,
         uint256[] memory _randomWords
     ) internal override {
-        waitingForRandomness = false;
         require(requestId == _requestId, "Fulfillment error");
 
         randomWords = _randomWords;
         status = RaffleStatus.CLOSED;
+        waitingForRandomness = false;
 
         emit RaffleClosed(raffleId);
         emit RequestFulfilled(_requestId, _randomWords);
     }
 
-    function _requestRandomWordsAdmin() public onlyOwner {
+    function requestRandomWordsAdmin() public onlyOwner {
         requestId = s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
                 keyHash: keyHash,

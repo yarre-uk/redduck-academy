@@ -72,7 +72,7 @@ contract RaffleExtended is Raffle {
         staking = _staking;
     }
 
-    function concludeWithdraw(Deposit storage depositNode) internal override {
+    function _concludeWithdraw(Deposit storage depositNode) internal override {
         require(X + Y + Z == 100000, "Invalid distribution");
 
         TransferHelper.safeTransfer(whitelist[0], staking, (pool * X) / 100000);

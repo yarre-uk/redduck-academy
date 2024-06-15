@@ -46,14 +46,14 @@
 ||||||
 | **TradableERC20** | Implementation | VotingERC20 |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VotingERC20 |
-| └ | updateVoteOnInteraction | Internal 🔒 | 🛑  | |
+| └ | _updateVoteOnInteraction | Internal 🔒 | 🛑  | |
 | └ | buy | Public ❗️ |  💵 | hasNotVoted |
 | └ | sell | Public ❗️ | 🛑  | hasNotVoted |
 | └ | transfer | Public ❗️ | 🛑  | hasNotVoted |
 | └ | transferFrom | Public ❗️ | 🛑  | hasNotVoted |
 | └ | approve | Public ❗️ | 🛑  |NO❗️ |
 | └ | buy | Public ❗️ |  💵 |NO❗️ |
-| └ | transferFromInternal | Internal 🔒 | 🛑  | |
+| └ | _transferFromInternal | Internal 🔒 | 🛑  | |
 | └ | sell | Public ❗️ | 🛑  |NO❗️ |
 | └ | transfer | Public ❗️ | 🛑  |NO❗️ |
 | └ | transferFrom | Public ❗️ | 🛑  |NO❗️ |
@@ -100,11 +100,11 @@
 | └ | initialize | Public ❗️ | 🛑  | onlyOwner |
 | └ | deposit | Public ❗️ | 🛑  |NO❗️ |
 | └ | permitDeposit | Public ❗️ | 🛑  |NO❗️ |
-| └ | concludeWithdraw | Internal 🔒 | 🛑  | |
+| └ | _concludeWithdraw | Internal 🔒 | 🛑  | |
 | └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
 | └ | _withdrawLast | Internal 🔒 | 🛑  | |
 | └ | fulfillRandomWords | Internal 🔒 | 🛑  | |
-| └ | _requestRandomWordsAdmin | Public ❗️ | 🛑  | onlyOwner |
+| └ | requestRandomWordsAdmin | Public ❗️ | 🛑  | onlyOwner |
 | └ | _requestRandomWords | Internal 🔒 | 🛑  | |
 | └ | checkUpkeep | External ❗️ |   |NO❗️ |
 | └ | performUpkeep | External ❗️ | 🛑  |NO❗️ |
@@ -121,7 +121,7 @@
 | └ | setZ | Public ❗️ | 🛑  | onlyOwner |
 | └ | setFounder | Public ❗️ | 🛑  | onlyOwner |
 | └ | setStaking | Public ❗️ | 🛑  | onlyOwner |
-| └ | concludeWithdraw | Internal 🔒 | 🛑  | |
+| └ | _concludeWithdraw | Internal 🔒 | 🛑  | |
 ||||||
 | **VotingLinkedList** | Implementation |  |||
 | └ | getById | Public ❗️ |   |NO❗️ |
