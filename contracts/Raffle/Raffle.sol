@@ -260,11 +260,11 @@ abstract contract Raffle is
         uint256 _requestId,
         uint256[] memory _randomWords
     ) internal override {
+        waitingForRandomness = false;
         require(requestId == _requestId, "Fulfillment error");
 
         randomWords = _randomWords;
         status = RaffleStatus.CLOSED;
-        waitingForRandomness = false;
 
         emit RaffleClosed(raffleId);
         emit RequestFulfilled(_requestId, _randomWords);

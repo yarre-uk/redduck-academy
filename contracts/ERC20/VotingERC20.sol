@@ -1,56 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import { VotingLinkedList, Data } from "../utils/VotingLinkedList.sol";
 import { BaseERC20 } from "./BaseERC20.sol";
+import "hardhat/console.sol";
 
-/// @title VotingERC20
-/// @dev This contract extends BaseERC20 to allow for voting on token price.
-/// @notice This contract allows for voting on the price of the token.
-contract VotingERC20 is BaseERC20 {
-    /// @notice The amount of tokens a user must own to vote for an existing token price.
+contract VotingERC20 is BaseERC20, VotingLinkedList {
     uint256 private _voteForExistingTokenAmount = 5; // 0.05% of total supply
-
-    /// @notice The amount of tokens a user must own to vote for a new token price.
     uint256 private _voteForNewTokenAmount = 10; // 0.1% of total supply
+    // must be private
+    uint256 public _leadingPrice = 0;
 
-    /// @notice The leading price in the current vote.
-    uint256 private _leadingPrice = 0;
-
-    /// @notice The time allowed for a vote.
     uint256 public constant TIME_TO_VOTE = 1 days;
-
-    /// @notice The start time of the current vote.
     uint256 public voteStartTime;
 
-    /// @notice Whether a vote is currently in progress.
     bool public isVoting = false;
-
-    /// @notice The ID of the current vote.
     uint256 public votingId;
-
-    /// @notice The votes for each price in each vote.
-    mapping(uint256 => mapping(uint256 => uint256)) public votes;
-
-    /// @notice Whether each user has voted in each vote.
-    mapping(uint256 => mapping(address => bool)) public hasVoted;
-
-    /// @notice The current price of the token.
+    mapping(uint256 => mapping(address => uint256)) public userVote;
     uint256 public price;
 
-    /// @dev Emitted when a vote starts.
     event VotingStarted(
         address indexed _address,
         uint256 indexed _votingId,
         uint256 _prevPrice
     );
 
-    /// @dev Emitted when a vote ends.
     event VotingEnded(uint256 indexed _votingId, uint256 _newPrice);
 
-    /// @dev Emitted when a user votes.
     event Voted(address indexed _address, uint256 _price);
 
-    /// @dev Initializes the contract with initial supply, price, name, symbol, and decimals.
     constructor(
         uint256 _initialSupply,
         uint256 _initialPrice,
@@ -61,31 +39,55 @@ contract VotingERC20 is BaseERC20 {
         price = _initialPrice;
     }
 
-    /// @dev Returns whether the sender owns more than a certain percentage of the total supply.
     function _ownsMoreThan(uint256 _percentage) internal view returns (bool) {
         return _balances[msg.sender] > (_totalSupply * _percentage) / 10000;
     }
 
-    /// @dev Starts a vote.
     function _startVoting() internal {
         isVoting = true;
         voteStartTime = block.timestamp;
         emit VotingStarted(msg.sender, votingId, price);
     }
 
-    /// @dev Updates the leading price in the current vote.
-    function _updatePrice(uint256 _price) internal {
-        if (votes[votingId][_price] > votes[votingId][_leadingPrice]) {
+    function _updateList(
+        uint256 _price,
+        uint256 _amount,
+        bytes32 _id
+    ) internal {
+        bytes32 checkId = getId(votingId, _price);
+        bytes32 leadingId = getId(votingId, _leadingPrice);
+
+        require(
+            leadingId == getTail() || _leadingPrice == 0,
+            "Leading price is not the tail"
+        );
+
+        Data memory data = getById(checkId);
+
+        if (data.price == _price) {
+            deleteNode(checkId);
+        }
+
+        if (_id == leadingId || _id == bytes32(0)) {
+            // console.log("push", _leadingPrice, _price, _amount);
+            push(votingId, _price, _amount);
             _leadingPrice = _price;
+        } else {
+            // console.log("insert", _leadingPrice, _price, _amount);
+            insert(votingId, _id, _price, _amount);
+
+            if (getTail() == checkId) {
+                _leadingPrice = _price;
+            } else {
+                _leadingPrice = getById(getTail()).price;
+            }
         }
     }
 
-    /// @notice Returns the percentage of the total supply owned by the sender.
     function userPercentage() public view returns (uint256) {
         return (_balances[msg.sender] * 10000) / _totalSupply;
     }
 
-    /// @notice Stops the current vote.
     function stopVoting() public {
         require(isVoting, "Voting is not started");
         require(
@@ -93,43 +95,53 @@ contract VotingERC20 is BaseERC20 {
             "Voting time hasn't passed"
         );
 
+        bytes32 tail = getTail();
+        Data memory data = getById(tail);
+
+        require(data.price == _leadingPrice, "Leading price is not the tail");
+
         isVoting = false;
         price = _leadingPrice;
+        _leadingPrice = 0;
         voteStartTime = 0;
         votingId++;
+        clear();
         emit VotingEnded(votingId, price);
     }
 
-    /// @notice Votes for a price.
-    function vote(uint256 _price) public {
+    //TODO delete previous votes
+    function vote(uint256 _price, bytes32 voteId) public {
         require(
             _ownsMoreThan(_voteForExistingTokenAmount),
             "Can't vote with such small amount of tokens"
         );
         require(_price > 0, "Price can't be 0");
-        require(!hasVoted[votingId][msg.sender], "User has already voted");
+        require(userVote[votingId][msg.sender] == 0, "User has already voted");
+
+        uint256 amount = _balances[msg.sender];
 
         if (userPercentage() > _voteForNewTokenAmount) {
             if (!isVoting) {
                 _startVoting();
             }
 
-            votes[votingId][_price] += _balances[msg.sender];
-            hasVoted[votingId][msg.sender] = true;
+            userVote[votingId][msg.sender] = _price;
 
-            _updatePrice(_price);
+            _updateList(_price, amount, voteId);
 
             emit Voted(msg.sender, _price);
             return;
         }
 
         require(isVoting, "Voting is not started");
-        require(votes[votingId][_price] > 0, "Price is not in the voting list");
+        require(
+            isNotEmpty(getId(votingId, _price)),
+            "Price is not in the voting list"
+        );
 
-        votes[votingId][_price] += _balances[msg.sender];
-        hasVoted[votingId][msg.sender] = true;
+        userVote[votingId][msg.sender] = _price;
 
-        _updatePrice(_price);
+        _updateList(_price, amount, voteId);
 
         emit Voted(msg.sender, _price);
     }

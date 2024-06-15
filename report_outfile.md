@@ -15,6 +15,7 @@
 | contracts/Raffle/MyProxy.sol | [object Promise] |
 | contracts/Raffle/Raffle.sol | [object Promise] |
 | contracts/Raffle/RaffleExtended.sol | [object Promise] |
+| contracts/utils/VotingLinkedList.sol | [object Promise] |
 
 
 ### Contracts Description Table
@@ -45,21 +46,28 @@
 ||||||
 | **TradableERC20** | Implementation | VotingERC20 |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VotingERC20 |
-| └ | buy | Public ❗️ |  💵 | haveNotVoted |
-| └ | sell | Public ❗️ | 🛑  | haveNotVoted |
-| └ | transfer | Public ❗️ | 🛑  | haveNotVoted |
-| └ | approve | Public ❗️ | 🛑  | haveNotVoted |
+| └ | updateVoteOnInteraction | Internal 🔒 | 🛑  | |
+| └ | buy | Public ❗️ |  💵 | hasNotVoted |
+| └ | sell | Public ❗️ | 🛑  | hasNotVoted |
+| └ | transfer | Public ❗️ | 🛑  | hasNotVoted |
+| └ | transferFrom | Public ❗️ | 🛑  | hasNotVoted |
+| └ | approve | Public ❗️ | 🛑  |NO❗️ |
+| └ | buy | Public ❗️ |  💵 |NO❗️ |
+| └ | transferFromInternal | Internal 🔒 | 🛑  | |
+| └ | sell | Public ❗️ | 🛑  |NO❗️ |
+| └ | transfer | Public ❗️ | 🛑  |NO❗️ |
+| └ | transferFrom | Public ❗️ | 🛑  |NO❗️ |
 | └ | setFeePercentage | Public ❗️ | 🛑  | onlyOwner |
 | └ | collectAndBurnFee | Public ❗️ | 🛑  | onlyOwner |
 | └ | getFeeBalance | Public ❗️ |   | onlyOwner |
 | └ | withdrawBalanceAmount | Public ❗️ | 🛑  | onlyOwner |
 | └ | withdrawBalance | Public ❗️ | 🛑  | onlyOwner |
 ||||||
-| **VotingERC20** | Implementation | BaseERC20 |||
+| **VotingERC20** | Implementation | BaseERC20, VotingLinkedList |||
 | └ | <Constructor> | Public ❗️ | 🛑  | BaseERC20 |
 | └ | _ownsMoreThan | Internal 🔒 |   | |
 | └ | _startVoting | Internal 🔒 | 🛑  | |
-| └ | _updatePrice | Internal 🔒 | 🛑  | |
+| └ | _updateList | Internal 🔒 | 🛑  | |
 | └ | userPercentage | Public ❗️ |   |NO❗️ |
 | └ | stopVoting | Public ❗️ | 🛑  |NO❗️ |
 | └ | vote | Public ❗️ | 🛑  |NO❗️ |
@@ -114,6 +122,19 @@
 | └ | setFounder | Public ❗️ | 🛑  | onlyOwner |
 | └ | setStaking | Public ❗️ | 🛑  | onlyOwner |
 | └ | concludeWithdraw | Internal 🔒 | 🛑  | |
+||||||
+| **VotingLinkedList** | Implementation |  |||
+| └ | getById | Public ❗️ |   |NO❗️ |
+| └ | isNotEmpty | Public ❗️ |   |NO❗️ |
+| └ | getHead | Public ❗️ |   |NO❗️ |
+| └ | getTail | Public ❗️ |   |NO❗️ |
+| └ | getId | Public ❗️ |   |NO❗️ |
+| └ | push | Public ❗️ | 🛑  |NO❗️ |
+| └ | pushStart | Public ❗️ | 🛑  |NO❗️ |
+| └ | insert | Public ❗️ | 🛑  |NO❗️ |
+| └ | deleteNode | Public ❗️ | 🛑  |NO❗️ |
+| └ | clear | Public ❗️ | 🛑  |NO❗️ |
+| └ | traverse | Public ❗️ |   |NO❗️ |
 
 
 ### Legend
