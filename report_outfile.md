@@ -9,12 +9,14 @@
 | contracts/ERC20/IERC20.sol | [object Promise] |
 | contracts/ERC20/TradableERC20.sol | [object Promise] |
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
-| contracts/utils/Merkle.sol | [object Promise] |
-| contracts/utils/Ownable.sol | [object Promise] |
-| contracts/utils/VotingLinkedList.sol | [object Promise] |
-| contracts/Vesting/Vesting1.sol | [object Promise] |
-| contracts/Vesting/Vesting2.sol | [object Promise] |
-| contracts/Vesting/Vesting3.sol | [object Promise] |
+| contracts/ERC20/YarreToken.sol | [object Promise] |
+| contracts/Governance/MyGovernance.sol | [object Promise] |
+| contracts/Governance/ProposalStorage.sol | [object Promise] |
+| contracts/interfaces/IWETH.sol | [object Promise] |
+| contracts/Raffle/DepositStorage.sol | [object Promise] |
+| contracts/Raffle/Raffle.sol | [object Promise] |
+| contracts/Raffle/RaffleExtended.sol | [object Promise] |
+| contracts/utils/MyProxy.sol | [object Promise] |
 
 
 ### Contracts Description Table
@@ -25,7 +27,7 @@
 |     └      |  **Function Name**  |  **Visibility**  |  **Mutability**  |  **Modifiers**  |
 ||||||
 | **BaseERC20** | Implementation | IERC20, Ownable |||
-| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
 | └ | balanceOf | Public ❗️ |   |NO❗️ |
 | └ | transfer | Public ❗️ | 🛑  | validAddress |
 | └ | allowance | Public ❗️ |   |NO❗️ |
@@ -45,14 +47,14 @@
 ||||||
 | **TradableERC20** | Implementation | VotingERC20 |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VotingERC20 |
-| └ | updateVoteOnInteraction | Internal 🔒 | 🛑  | |
+| └ | _updateVoteOnInteraction | Internal 🔒 | 🛑  | |
 | └ | buy | Public ❗️ |  💵 | hasNotVoted |
 | └ | sell | Public ❗️ | 🛑  | hasNotVoted |
 | └ | transfer | Public ❗️ | 🛑  | hasNotVoted |
 | └ | transferFrom | Public ❗️ | 🛑  | hasNotVoted |
 | └ | approve | Public ❗️ | 🛑  |NO❗️ |
 | └ | buy | Public ❗️ |  💵 |NO❗️ |
-| └ | transferFromInternal | Internal 🔒 | 🛑  | |
+| └ | _transferFromInternal | Internal 🔒 | 🛑  | |
 | └ | sell | Public ❗️ | 🛑  |NO❗️ |
 | └ | transfer | Public ❗️ | 🛑  |NO❗️ |
 | └ | transferFrom | Public ❗️ | 🛑  |NO❗️ |
@@ -72,38 +74,68 @@
 | └ | vote | Public ❗️ | 🛑  |NO❗️ |
 | └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
 ||||||
-| **Merkle** | Implementation |  |||
-| └ | checkProof | Public ❗️ |   |NO❗️ |
+| **YarreToken** | Implementation | TradableERC20 |||
+| └ | <Constructor> | Public ❗️ | 🛑  | TradableERC20 |
 ||||||
-| **Ownable** | Implementation |  |||
-| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
+| **MyGovernance** | Implementation | Ownable, AccessControl, Initializable |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
+| └ | grantRoleExecuter | Public ❗️ | 🛑  | onlyOwner |
 ||||||
-| **VotingLinkedList** | Implementation |  |||
-| └ | getById | Public ❗️ |   |NO❗️ |
-| └ | isNotEmpty | Public ❗️ |   |NO❗️ |
-| └ | getHead | Public ❗️ |   |NO❗️ |
-| └ | getTail | Public ❗️ |   |NO❗️ |
-| └ | getId | Public ❗️ |   |NO❗️ |
-| └ | push | Public ❗️ | 🛑  |NO❗️ |
-| └ | pushStart | Public ❗️ | 🛑  |NO❗️ |
-| └ | insert | Public ❗️ | 🛑  |NO❗️ |
-| └ | deleteNode | Public ❗️ | 🛑  |NO❗️ |
-| └ | clear | Public ❗️ | 🛑  |NO❗️ |
-| └ | traverse | Public ❗️ |   |NO❗️ |
+| **ProposalStorage** | Library |  |||
+| └ | getId | Internal 🔒 |   | |
+| └ | isEmpty | Internal 🔒 |   | |
+| └ | addData | Internal 🔒 | 🛑  | |
+| └ | getData | Internal 🔒 |   | |
+| └ | updateData | Internal 🔒 | 🛑  | |
+| └ | removeData | Internal 🔒 | 🛑  | |
 ||||||
-| **Vesting1** | Implementation | Ownable |||
-| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
-| └ | claim | Public ❗️ | 🛑  |NO❗️ |
-| └ | addAddress | Public ❗️ | 🛑  | onlyOwner |
+| **IWETH** | Interface |  |||
+| └ | deposit | External ❗️ |  💵 |NO❗️ |
+| └ | withdraw | External ❗️ | 🛑  |NO❗️ |
+| └ | balanceOf | External ❗️ |   |NO❗️ |
+| └ | transfer | External ❗️ | 🛑  |NO❗️ |
+| └ | approve | External ❗️ | 🛑  |NO❗️ |
 ||||||
-| **Vesting2** | Implementation | Ownable, Merkle |||
-| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
-| └ | claim | Public ❗️ | 🛑  |NO❗️ |
-| └ | setRoot | Public ❗️ | 🛑  | onlyOwner |
+| **DepositStorage** | Library |  |||
+| └ | getId | Internal 🔒 |   | |
+| └ | isEmpty | Internal 🔒 |   | |
+| └ | addNode | Internal 🔒 | 🛑  | |
 ||||||
-| **Vesting3** | Implementation | Ownable |||
-| └ | <Constructor> | Public ❗️ | 🛑  |NO❗️ |
-| └ | claim | Public ❗️ | 🛑  |NO❗️ |
+| **Raffle** | Implementation | VRFConsumerBaseV2Plus, AutomationCompatibleInterface |||
+| └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
+| └ | initialize | Public ❗️ | 🛑  | onlyOwner |
+| └ | deposit | Public ❗️ | 🛑  |NO❗️ |
+| └ | permitDeposit | Public ❗️ | 🛑  |NO❗️ |
+| └ | _concludeWithdraw | Internal 🔒 | 🛑  | |
+| └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
+| └ | _withdrawLast | Internal 🔒 | 🛑  | |
+| └ | fulfillRandomWords | Internal 🔒 | 🛑  | |
+| └ | requestRandomWordsAdmin | Public ❗️ | 🛑  | onlyOwner |
+| └ | _requestRandomWords | Internal 🔒 | 🛑  | |
+| └ | checkUpkeep | External ❗️ |   |NO❗️ |
+| └ | performUpkeep | External ❗️ | 🛑  |NO❗️ |
+||||||
+| **RaffleExtended** | Implementation | Raffle |||
+| └ | setWaitingForRandomness | Public ❗️ | 🛑  | onlyOwner |
+| └ | setForwarderAddress | External ❗️ | 🛑  | onlyOwner |
+| └ | setWhitelist | Public ❗️ | 🛑  | onlyOwner |
+| └ | getChance | Public ❗️ |   |NO❗️ |
+| └ | getDeposit | Public ❗️ |   |NO❗️ |
+| └ | getDeposits | Public ❗️ |   |NO❗️ |
+| └ | setX | Public ❗️ | 🛑  | onlyOwner |
+| └ | setY | Public ❗️ | 🛑  | onlyOwner |
+| └ | setZ | Public ❗️ | 🛑  | onlyOwner |
+| └ | setFounder | Public ❗️ | 🛑  | onlyOwner |
+| └ | setStaking | Public ❗️ | 🛑  | onlyOwner |
+| └ | _concludeWithdraw | Internal 🔒 | 🛑  | |
+||||||
+| **MyProxy** | Implementation | Ownable, Proxy |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | setImplementation | External ❗️ | 🛑  | onlyOwner |
+| └ | getImplementation | External ❗️ |   |NO❗️ |
+| └ | _implementation | Internal 🔒 |   | |
+| └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
 
 
 ### Legend

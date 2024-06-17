@@ -2,7 +2,6 @@
 pragma solidity ^0.8.24;
 
 import { VotingERC20 } from "./VotingERC20.sol";
-import "hardhat/console.sol";
 
 contract TradableERC20 is VotingERC20 {
     uint256 public feePercentage = 1; // 0.01%
@@ -23,8 +22,7 @@ contract TradableERC20 is VotingERC20 {
         _;
     }
 
-    // do i need event here?
-    function updateVoteOnInteraction(
+    function _updateVoteOnInteraction(
         bytes32 _prevId,
         address _user,
         uint256 _prevAmount,
@@ -130,7 +128,7 @@ contract TradableERC20 is VotingERC20 {
         _mint(msg.sender, amount - fee);
         _mint(address(this), fee);
 
-        updateVoteOnInteraction(
+        _updateVoteOnInteraction(
             _id,
             msg.sender,
             _balances[msg.sender] - (amount - fee),
@@ -138,7 +136,7 @@ contract TradableERC20 is VotingERC20 {
         );
     }
 
-    function transferFromInternal(
+    function _transferFromInternal(
         address _from,
         address _to,
         uint256 _value
@@ -155,12 +153,12 @@ contract TradableERC20 is VotingERC20 {
         uint256 fee = (_amount * feePercentage) / 10000;
         uint256 value = (_amount - fee) / price;
 
-        transferFromInternal(msg.sender, address(this), _amount);
+        _transferFromInternal(msg.sender, address(this), _amount);
         _burn(address(this), _amount - fee);
 
         payable(msg.sender).transfer(value);
 
-        updateVoteOnInteraction(
+        _updateVoteOnInteraction(
             _id,
             msg.sender,
             _balances[msg.sender] + _amount,
@@ -177,7 +175,7 @@ contract TradableERC20 is VotingERC20 {
         bool result = super.transfer(_to, _value);
 
         if (result) {
-            updateVoteOnInteraction(
+            _updateVoteOnInteraction(
                 _id1,
                 msg.sender,
                 _balances[msg.sender] + _value,
@@ -185,7 +183,7 @@ contract TradableERC20 is VotingERC20 {
             );
 
             if (userVote[votingId][_to] != 0) {
-                updateVoteOnInteraction(
+                _updateVoteOnInteraction(
                     _id2,
                     _to,
                     _balances[_to] - _value,
@@ -211,7 +209,7 @@ contract TradableERC20 is VotingERC20 {
         // console.log("->>", _balances[_to]);
 
         if (result) {
-            updateVoteOnInteraction(
+            _updateVoteOnInteraction(
                 _id1,
                 _from,
                 _balances[_from] + _value,
@@ -219,7 +217,7 @@ contract TradableERC20 is VotingERC20 {
             );
 
             if (userVote[votingId][_to] != 0) {
-                updateVoteOnInteraction(
+                _updateVoteOnInteraction(
                     _id2,
                     _to,
                     _balances[_to] - _value,
@@ -245,10 +243,10 @@ contract TradableERC20 is VotingERC20 {
     }
 
     function withdrawBalanceAmount(uint256 _value) public onlyOwner {
-        payable(_owner).transfer(_value);
+        payable(owner()).transfer(_value);
     }
 
     function withdrawBalance() public onlyOwner {
-        payable(_owner).transfer(address(this).balance);
+        payable(owner()).transfer(address(this).balance);
     }
 }
