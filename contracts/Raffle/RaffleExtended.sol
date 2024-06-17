@@ -12,6 +12,10 @@ contract RaffleExtended is Raffle {
     address public founder;
     address public staking;
 
+    event XChanged(uint256 X);
+    event YChanged(uint256 Y);
+    event ZChanged(uint256 Z);
+
     function setWaitingForRandomness(
         bool _waitingForRandomness
     ) public onlyOwner {
@@ -54,14 +58,17 @@ contract RaffleExtended is Raffle {
 
     function setX(uint256 _X) public onlyOwner {
         X = _X;
+        emit XChanged(_X);
     }
 
     function setY(uint256 _Y) public onlyOwner {
         Y = _Y;
+        emit YChanged(_Y);
     }
 
     function setZ(uint256 _Z) public onlyOwner {
         Z = _Z;
+        emit ZChanged(_Z);
     }
 
     function setFounder(address _founder) public onlyOwner {

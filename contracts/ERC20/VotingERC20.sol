@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { VotingLinkedList, Data } from "../utils/VotingLinkedList.sol";
+import { VotingLinkedList, Data } from "./utils/VotingLinkedList.sol";
 import { BaseERC20 } from "./BaseERC20.sol";
-import "hardhat/console.sol";
 
 contract VotingERC20 is BaseERC20, VotingLinkedList {
     uint256 private _voteForExistingTokenAmount = 5; // 0.05% of total supply

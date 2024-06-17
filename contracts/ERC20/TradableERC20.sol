@@ -2,7 +2,6 @@
 pragma solidity ^0.8.24;
 
 import { VotingERC20 } from "./VotingERC20.sol";
-import "hardhat/console.sol";
 
 contract TradableERC20 is VotingERC20 {
     uint256 public feePercentage = 1; // 0.01%

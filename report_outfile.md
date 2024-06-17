@@ -10,12 +10,13 @@
 | contracts/ERC20/TradableERC20.sol | [object Promise] |
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
 | contracts/ERC20/YarreToken.sol | [object Promise] |
+| contracts/Governance/MyGovernance.sol | [object Promise] |
+| contracts/Governance/ProposalStorage.sol | [object Promise] |
 | contracts/interfaces/IWETH.sol | [object Promise] |
 | contracts/Raffle/DepositStorage.sol | [object Promise] |
-| contracts/Raffle/MyProxy.sol | [object Promise] |
 | contracts/Raffle/Raffle.sol | [object Promise] |
 | contracts/Raffle/RaffleExtended.sol | [object Promise] |
-| contracts/utils/VotingLinkedList.sol | [object Promise] |
+| contracts/utils/MyProxy.sol | [object Promise] |
 
 
 ### Contracts Description Table
@@ -76,6 +77,19 @@
 | **YarreToken** | Implementation | TradableERC20 |||
 | └ | <Constructor> | Public ❗️ | 🛑  | TradableERC20 |
 ||||||
+| **MyGovernance** | Implementation | Ownable, AccessControl, Initializable |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
+| └ | grantRoleExecuter | Public ❗️ | 🛑  | onlyOwner |
+||||||
+| **ProposalStorage** | Library |  |||
+| └ | getId | Internal 🔒 |   | |
+| └ | isEmpty | Internal 🔒 |   | |
+| └ | addData | Internal 🔒 | 🛑  | |
+| └ | getData | Internal 🔒 |   | |
+| └ | updateData | Internal 🔒 | 🛑  | |
+| └ | removeData | Internal 🔒 | 🛑  | |
+||||||
 | **IWETH** | Interface |  |||
 | └ | deposit | External ❗️ |  💵 |NO❗️ |
 | └ | withdraw | External ❗️ | 🛑  |NO❗️ |
@@ -87,13 +101,6 @@
 | └ | getId | Internal 🔒 |   | |
 | └ | isEmpty | Internal 🔒 |   | |
 | └ | addNode | Internal 🔒 | 🛑  | |
-||||||
-| **MyProxy** | Implementation | Ownable, Proxy |||
-| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
-| └ | setImplementation | External ❗️ | 🛑  | onlyOwner |
-| └ | getImplementation | External ❗️ |   |NO❗️ |
-| └ | _implementation | Internal 🔒 |   | |
-| └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
 ||||||
 | **Raffle** | Implementation | VRFConsumerBaseV2Plus, AutomationCompatibleInterface |||
 | └ | <Constructor> | Public ❗️ | 🛑  | VRFConsumerBaseV2Plus |
@@ -123,18 +130,12 @@
 | └ | setStaking | Public ❗️ | 🛑  | onlyOwner |
 | └ | _concludeWithdraw | Internal 🔒 | 🛑  | |
 ||||||
-| **VotingLinkedList** | Implementation |  |||
-| └ | getById | Public ❗️ |   |NO❗️ |
-| └ | isNotEmpty | Public ❗️ |   |NO❗️ |
-| └ | getHead | Public ❗️ |   |NO❗️ |
-| └ | getTail | Public ❗️ |   |NO❗️ |
-| └ | getId | Public ❗️ |   |NO❗️ |
-| └ | push | Public ❗️ | 🛑  |NO❗️ |
-| └ | pushStart | Public ❗️ | 🛑  |NO❗️ |
-| └ | insert | Public ❗️ | 🛑  |NO❗️ |
-| └ | deleteNode | Public ❗️ | 🛑  |NO❗️ |
-| └ | clear | Public ❗️ | 🛑  |NO❗️ |
-| └ | traverse | Public ❗️ |   |NO❗️ |
+| **MyProxy** | Implementation | Ownable, Proxy |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | setImplementation | External ❗️ | 🛑  | onlyOwner |
+| └ | getImplementation | External ❗️ |   |NO❗️ |
+| └ | _implementation | Internal 🔒 |   | |
+| └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
 
 
 ### Legend
