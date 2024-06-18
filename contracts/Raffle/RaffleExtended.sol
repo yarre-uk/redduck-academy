@@ -2,8 +2,9 @@
 pragma solidity 0.8.24;
 
 import { Raffle, RaffleStatus } from "./Raffle.sol";
-import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import { Deposit } from "./DepositStorage.sol";
+
+import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 contract RaffleExtended is Raffle {
     uint256 public X;
@@ -11,6 +12,8 @@ contract RaffleExtended is Raffle {
     uint256 public Z;
     address public founder;
     address public staking;
+
+    address public governor;
 
     event XChanged(uint256 X);
     event YChanged(uint256 Y);
@@ -28,6 +31,10 @@ contract RaffleExtended is Raffle {
 
     function setWhitelist(address[] memory _whitelist) public onlyOwner {
         whitelist = _whitelist;
+    }
+
+    function setGovernor(address _governor) public onlyOwner {
+        governor = _governor;
     }
 
     function getChance(
@@ -56,17 +63,25 @@ contract RaffleExtended is Raffle {
         return deposits;
     }
 
-    function setX(uint256 _X) public onlyOwner {
+    modifier onlyOwnerOrGovernor() {
+        require(
+            msg.sender == owner() || msg.sender == governor,
+            "RaffleExtended: Caller is not the owner or governor"
+        );
+        _;
+    }
+
+    function setX(uint256 _X) public onlyOwnerOrGovernor {
         X = _X;
         emit XChanged(_X);
     }
 
-    function setY(uint256 _Y) public onlyOwner {
+    function setY(uint256 _Y) public onlyOwnerOrGovernor {
         Y = _Y;
         emit YChanged(_Y);
     }
 
-    function setZ(uint256 _Z) public onlyOwner {
+    function setZ(uint256 _Z) public onlyOwnerOrGovernor {
         Z = _Z;
         emit ZChanged(_Z);
     }
