@@ -6,8 +6,17 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { ERC20Permit, Nonces } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
-contract GovernanceToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
+import "hardhat/console.sol";
+
+contract GovernanceToken is
+    ERC20,
+    ERC20Burnable,
+    ERC20Permit,
+    ERC20Votes,
+    Ownable
+{
     constructor(
         address initialOwner
     )
@@ -28,5 +37,9 @@ contract GovernanceToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
         address owner
     ) public view override(ERC20Permit, Nonces) returns (uint256) {
         return super.nonces(owner);
+    }
+
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
     }
 }

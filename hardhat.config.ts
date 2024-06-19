@@ -15,12 +15,10 @@ const config: HardhatUserConfig = {
       chainId: 1337,
       forking: {
         url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+        blockNumber: 6135000,
         // url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
       },
     },
-  },
-  gasReporter: {
-    enabled: true,
   },
   sourcify: {
     enabled: true,

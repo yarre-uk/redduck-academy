@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
-import { abi as proxyAbi } from "../artifacts/contracts/Raffle/MyProxy.sol/MyProxy.json";
 import { abi as raffleAbi } from "../artifacts/contracts/Raffle/RaffleExtended.sol/RaffleExtended.json";
+import { abi as proxyAbi } from "../artifacts/contracts/utils/MyProxy.sol/MyProxy.json";
 import { PRIVATE_KEY } from "../env";
 
 const proxyAddress = "0xEABAb27977ba8A7Fe7d1A437bbc0EE782bdC776c";

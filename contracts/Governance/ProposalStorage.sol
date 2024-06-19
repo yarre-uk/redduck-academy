@@ -15,10 +15,9 @@ struct ProposalStorageState {
 // Timestamps are in block numbers
 struct Proposal {
     address sender;
-    bytes32[] signatures;
-    bytes32[] calldatas;
+    bytes[] calldatas;
     uint256 proposedAt;
-    bytes32 description;
+    string description;
     //---
     uint256 votingStartedAt;
     uint256 forVotes;
@@ -30,9 +29,8 @@ library ProposalStorage {
     function getId(Proposal memory _params) internal pure returns (bytes32) {
         return
             keccak256(
-                abi.encodePacked(
+                abi.encode(
                     _params.sender,
-                    _params.signatures,
                     _params.calldatas,
                     _params.proposedAt,
                     _params.description

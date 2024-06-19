@@ -9,6 +9,8 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
+import "hardhat/console.sol";
+
 contract MyGovernance is Ownable, AccessControl, Initializable {
     bytes32 public constant EXECUTER_ROLE = keccak256("EXECUTER_ROLE");
 
@@ -39,14 +41,17 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
 
     function initialize(
         address payable _token,
-        address _raffle
+        address _raffle,
+        uint256 _percentageForProposal,
+        uint256 _blocksBeforeVoting,
+        uint256 _blocksBeforeExecution
     ) public initializer onlyOwner {
         token = GovernanceToken(_token);
         raffle = RaffleExtended(_raffle);
 
-        percentageForProposal = 100;
-        blocksBeforeVoting = 300;
-        blocksBeforeExecution = 300;
+        percentageForProposal = _percentageForProposal;
+        blocksBeforeVoting = _blocksBeforeVoting;
+        blocksBeforeExecution = _blocksBeforeExecution;
     }
 
     modifier hasEnoughPercentage(uint256 _percentageCap) {
@@ -67,13 +72,12 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
     }
 
     function createProposal(
-        bytes32[] memory _actions,
-        bytes32 _description
-    ) public hasEnoughPercentage(percentageForProposal) {
+        bytes[] memory _calldatas,
+        string memory _description
+    ) public hasEnoughPercentage(percentageForProposal) returns (bytes32 id) {
         Proposal memory proposal = Proposal({
             sender: msg.sender,
-            signatures: _actions,
-            calldatas: _actions,
+            calldatas: _calldatas,
             proposedAt: block.number,
             description: _description,
             votingStartedAt: 0,
@@ -82,20 +86,12 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
             state: ProposalState.Created
         });
 
-        bytes32 id = _proposalsState.addData(proposal);
+        id = _proposalsState.addData(proposal);
 
         emit ProposalCreated(id, msg.sender);
     }
 
-    /**
-     * @dev Allows a voter to vote on a proposal.
-     * @param id The ID of the proposal.
-     * @param voteInFavor The decision of the voter (true for voting in favor, false for voting against).
-     * @notice This function requires the proposal to be in the voting period and the voter to have non-zero weight.
-     * @notice The voter cannot be the proposer and cannot have already voted on the proposal.
-     * @notice The weight of the voter is determined by the number of tokens they hold at the time of the proposal.
-     */
-    function voteProposal(bytes32 id, bool voteInFavor) public {
+    function voteForProposal(bytes32 id, bool voteInFavor) public {
         Proposal storage proposal = _proposalsState.getData(id);
 
         require(
@@ -111,7 +107,10 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
             "MyGovernance: Voting period has not started"
         );
 
-        uint256 weight = token.getPastVotes(msg.sender, proposal.proposedAt);
+        uint256 weight = token.getPastVotes(
+            msg.sender,
+            proposal.proposedAt + blocksBeforeVoting
+        );
 
         require(weight > 0, "MyGovernance: Voter does not have any weight");
 
@@ -137,10 +136,8 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
     function _executeProposal(bytes32 id, Proposal storage proposal) internal {
         proposal.state = ProposalState.Executed;
 
-        for (uint256 i = 0; i < proposal.signatures.length; i++) {
-            (bool success, ) = address(raffle).call(
-                abi.encodePacked(proposal.signatures[i], proposal.calldatas[i])
-            );
+        for (uint256 i = 0; i < proposal.calldatas.length; i++) {
+            (bool success, ) = address(raffle).call(proposal.calldatas[i]);
 
             require(success, "MyGovernance: Proposal execution failed");
         }
@@ -170,5 +167,15 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
         } else {
             _executeProposal(id, proposal);
         }
+    }
+
+    function getProposal(
+        bytes32 id
+    ) public view returns (Proposal memory proposal) {
+        return _proposalsState.getData(id);
+    }
+
+    function test(string memory asd) public pure {
+        console.logString(asd);
     }
 }

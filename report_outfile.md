@@ -78,10 +78,11 @@
 | **YarreToken** | Implementation | TradableERC20 |||
 | └ | <Constructor> | Public ❗️ | 🛑  | TradableERC20 |
 ||||||
-| **GovernanceToken** | Implementation | ERC20, ERC20Permit, ERC20Votes, Ownable |||
+| **GovernanceToken** | Implementation | ERC20, ERC20Burnable, ERC20Permit, ERC20Votes, Ownable |||
 | └ | <Constructor> | Public ❗️ | 🛑  | ERC20 ERC20Permit Ownable |
 | └ | _update | Internal 🔒 | 🛑  | |
 | └ | nonces | Public ❗️ |   |NO❗️ |
+| └ | mint | Public ❗️ | 🛑  | onlyOwner |
 ||||||
 | **MyGovernance** | Implementation | Ownable, AccessControl, Initializable |||
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
@@ -89,10 +90,12 @@
 | └ | grantRoleExecuter | Public ❗️ | 🛑  | onlyOwner |
 | └ | revokeRoleExecuter | Public ❗️ | 🛑  | onlyOwner |
 | └ | createProposal | Public ❗️ | 🛑  | hasEnoughPercentage |
-| └ | voteProposal | Public ❗️ | 🛑  |NO❗️ |
+| └ | voteForProposal | Public ❗️ | 🛑  |NO❗️ |
 | └ | _cancelProposal | Internal 🔒 | 🛑  | |
 | └ | _executeProposal | Internal 🔒 | 🛑  | |
 | └ | processProposal | Public ❗️ | 🛑  | onlyRole |
+| └ | getProposal | Public ❗️ |   |NO❗️ |
+| └ | test | Public ❗️ |   |NO❗️ |
 ||||||
 | **ProposalStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |
