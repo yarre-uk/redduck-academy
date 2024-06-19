@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-expressions */
 import {
   loadFixture,
-  time,
   mine,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
@@ -18,19 +17,15 @@ function encodeParameters(
   values: number[],
   description: string,
 ): [string[], string] {
-  // Define the mapping of actions to their respective function signatures
-  const actionSignatures: { [key: string]: string } = {
-    setX: "setX(uint256)",
-    setY: "setY(uint256)",
-    setZ: "setZ(uint256)",
-  };
+  const iRaffle = new ethers.Interface([
+    "function setX(uint256)",
+    "function setY(uint256)",
+    "function setZ(uint256)",
+  ]);
 
   return [
     actions.map((action, index) =>
-      ethers.solidityPacked(
-        ["string", "uint256"],
-        [actionSignatures[action], values[index]],
-      ),
+      iRaffle.encodeFunctionData(action, [values[index]]),
     ),
     description,
   ];
@@ -38,7 +33,8 @@ function encodeParameters(
 
 describe("Governance", () => {
   const deploy = async () => {
-    const [owner, user1, user2, user3, user4] = await ethers.getSigners();
+    const [owner, executer, user1, user2, user3, user4] =
+      await ethers.getSigners();
 
     const governanceContract = await new MyGovernance__factory(owner).deploy();
 
@@ -68,6 +64,10 @@ describe("Governance", () => {
       100,
     );
 
+    await governanceContract.grantRoleExecuter(executer.address);
+
+    await raffleContract.setGovernor(await governanceContract.getAddress());
+
     return {
       contracts: {
         governance: governanceContract,
@@ -76,6 +76,7 @@ describe("Governance", () => {
       },
       users: {
         owner,
+        executer,
         user1,
         user2,
         user3,
@@ -108,76 +109,348 @@ describe("Governance", () => {
   });
 
   describe("Governance", () => {
-    it("Should be able to propose", async () => {
-      const {
-        contracts: { governance },
-        users: { user1 },
-      } = await loadFixture(deploy);
+    describe("Proposal interactions", () => {
+      it("Should be able to propose", async () => {
+        const {
+          contracts: { governance },
+          users: { user1 },
+        } = await loadFixture(deploy);
 
-      const user1Sigher = governance.connect(user1);
+        const user1Sigher = governance.connect(user1);
 
-      await user1Sigher.createProposal(
-        ...encodeParameters(["setX"], [1000], "Set X to 1000"),
-      );
+        await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
 
-      const id = await user1Sigher.createProposal.staticCall(
-        ...encodeParameters(["setX"], [1000], "Set X to 1000"),
-      );
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
 
-      expect((await user1Sigher.getProposal(id))[0]).to.equal(user1.address);
+        expect((await user1Sigher.getProposal(id))[0]).to.equal(user1.address);
+      });
+
+      it("Should be able to propose and vote", async () => {
+        const {
+          contracts: { governance },
+          users: { user1, user2 },
+        } = await loadFixture(deploy);
+
+        const user1Sigher = governance.connect(user1);
+        const user2Sigher = governance.connect(user2);
+
+        await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        await mine(101, { interval: 0 });
+
+        await user2Sigher.voteForProposal(id, true);
+
+        expect((await user1Sigher.getProposal(id))[5]).to.equal(100000);
+      });
+
+      it("Should be able to propose and make multiple votes", async () => {
+        const {
+          contracts: { governance },
+          users: { user1, user2, user3, user4 },
+        } = await loadFixture(deploy);
+
+        const user1Sigher = governance.connect(user1);
+        const user2Sigher = governance.connect(user2);
+        const user3Sigher = governance.connect(user3);
+        const user4Sigher = governance.connect(user4);
+
+        await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        await mine(101, { interval: 0 });
+
+        await user2Sigher.voteForProposal(id, true);
+        await user3Sigher.voteForProposal(id, true);
+        await user4Sigher.voteForProposal(id, false);
+
+        expect((await governance.getProposal(id))[5]).to.equal(200000);
+        expect((await governance.getProposal(id))[6]).to.equal(100000);
+      });
+
+      it("Should be able to propose and execute", async () => {
+        const {
+          contracts: { governance, raffle },
+          users: { user1, user2, executer },
+        } = await loadFixture(deploy);
+
+        const executerSigher = governance.connect(executer);
+        const user1Sigher = governance.connect(user1);
+        const user2Sigher = governance.connect(user2);
+
+        await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        await mine(101, { interval: 0 });
+
+        await user2Sigher.voteForProposal(id, true);
+
+        await mine(101, { interval: 0 });
+
+        expect(await raffle.X()).to.equal(0);
+
+        await executerSigher.processProposal(id);
+
+        expect(await raffle.X()).to.equal(1000);
+      });
+
+      it("Should be able to propose and execute multiple", async () => {
+        const {
+          contracts: { governance, raffle },
+          users: { user1, user2, executer },
+        } = await loadFixture(deploy);
+
+        const executerSigher = governance.connect(executer);
+        const user1Sigher = governance.connect(user1);
+        const user2Sigher = governance.connect(user2);
+
+        await user1Sigher.createProposal(
+          ...encodeParameters(
+            ["setX", "setY", "setZ"],
+            [1000, 100, 10],
+            "Set X to 1000, Y to 100, Z to 10",
+          ),
+        );
+
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(
+            ["setX", "setY", "setZ"],
+            [1000, 100, 10],
+            "Set X to 1000, Y to 100, Z to 10",
+          ),
+        );
+
+        await mine(101, { interval: 0 });
+
+        await user2Sigher.voteForProposal(id, true);
+
+        await mine(101, { interval: 0 });
+
+        expect(await raffle.X()).to.equal(0);
+        expect(await raffle.Y()).to.equal(0);
+        expect(await raffle.Z()).to.equal(0);
+
+        await executerSigher.processProposal(id);
+
+        expect(await raffle.X()).to.equal(1000);
+        expect(await raffle.Y()).to.equal(100);
+        expect(await raffle.Z()).to.equal(10);
+      });
     });
 
-    it("Should be able to propose and vote", async () => {
-      const {
-        contracts: { governance },
-        users: { user1, user2 },
-      } = await loadFixture(deploy);
+    describe("Proposal statuses", () => {
+      it("Should be created", async () => {
+        const {
+          contracts: { governance },
+          users: { user1 },
+        } = await loadFixture(deploy);
 
-      const user1Sigher = governance.connect(user1);
-      const user2Sigher = governance.connect(user2);
+        const user1Sigher = governance.connect(user1);
 
-      await user1Sigher.createProposal(
-        ...encodeParameters(["setX"], [1000], "Set X to 1000"),
-      );
+        await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
 
-      const id = await user1Sigher.createProposal.staticCall(
-        ...encodeParameters(["setX"], [1000], "Set X to 1000"),
-      );
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
 
-      await mine(101, { interval: 0 });
+        expect((await governance.getProposal(id))[7]).to.equal(0);
+      });
 
-      await user2Sigher.voteForProposal(id, true);
+      it("Should be executed", async () => {
+        const {
+          contracts: { governance, raffle },
+          users: { user1, user2, executer },
+        } = await loadFixture(deploy);
 
-      expect((await user1Sigher.getProposal(id))[5]).to.equal(100000);
+        const executerSigher = governance.connect(executer);
+        const user1Sigher = governance.connect(user1);
+        const user2Sigher = governance.connect(user2);
+
+        await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        await mine(101, { interval: 0 });
+
+        await user2Sigher.voteForProposal(id, true);
+
+        await mine(101, { interval: 0 });
+
+        expect(await raffle.X()).to.equal(0);
+
+        await executerSigher.processProposal(id);
+
+        expect(await raffle.X()).to.equal(1000);
+        expect((await governance.getProposal(id))[7]).to.equal(1);
+      });
+
+      it("Should be canceled", async () => {
+        const {
+          contracts: { governance, raffle },
+          users: { user1, user2, executer },
+        } = await loadFixture(deploy);
+
+        const executerSigher = governance.connect(executer);
+        const user1Sigher = governance.connect(user1);
+        const user2Sigher = governance.connect(user2);
+
+        await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        await mine(101, { interval: 0 });
+
+        await user2Sigher.voteForProposal(id, false);
+
+        await mine(101, { interval: 0 });
+
+        expect(await raffle.X()).to.equal(0);
+
+        await executerSigher.processProposal(id);
+
+        expect(await raffle.X()).to.equal(0);
+        expect((await governance.getProposal(id))[7]).to.equal(2);
+      });
     });
 
-    it("Should be able to propose and make multiple votes", async () => {
-      const {
-        contracts: { governance },
-        users: { user1, user2, user3, user4 },
-      } = await loadFixture(deploy);
+    describe("Events", function () {
+      it("Should emit ProposalCreated event", async () => {
+        const {
+          contracts: { governance },
+          users: { user1 },
+        } = await loadFixture(deploy);
 
-      const user1Sigher = governance.connect(user1);
-      const user2Sigher = governance.connect(user2);
-      const user3Sigher = governance.connect(user3);
-      const user4Sigher = governance.connect(user4);
+        const user1Sigher = governance.connect(user1);
 
-      await user1Sigher.createProposal(
-        ...encodeParameters(["setX"], [1000], "Set X to 1000"),
-      );
+        const proposalTx = await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
 
-      const id = await user1Sigher.createProposal.staticCall(
-        ...encodeParameters(["setX"], [1000], "Set X to 1000"),
-      );
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
 
-      await mine(101, { interval: 0 });
+        await expect(proposalTx)
+          .to.emit(governance, "ProposalCreated")
+          .withArgs(id, user1.address);
+      });
 
-      await user2Sigher.voteForProposal(id, true);
-      await user3Sigher.voteForProposal(id, true);
-      await user4Sigher.voteForProposal(id, false);
+      it("Should emit ProposalVoted event", async () => {
+        const {
+          contracts: { governance },
+          users: { user1, user2 },
+        } = await loadFixture(deploy);
 
-      expect((await governance.getProposal(id))[5]).to.equal(200000);
-      expect((await governance.getProposal(id))[6]).to.equal(100000);
+        const user1Sigher = governance.connect(user1);
+        const user2Sigher = governance.connect(user2);
+
+        await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        await mine(101, { interval: 0 });
+
+        const voteTx = await user2Sigher.voteForProposal(id, true);
+
+        await expect(voteTx)
+          .to.emit(governance, "ProposalVoted")
+          .withArgs(id, user2.address, true);
+      });
+
+      it("Should emit ProposalProcessed event with ProposalState.Executed", async () => {
+        const {
+          contracts: { governance },
+          users: { user1, user2, executer },
+        } = await loadFixture(deploy);
+
+        const executerSigher = governance.connect(executer);
+        const user1Sigher = governance.connect(user1);
+        const user2Sigher = governance.connect(user2);
+
+        await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        await mine(101, { interval: 0 });
+
+        await user2Sigher.voteForProposal(id, true);
+
+        await mine(101, { interval: 0 });
+
+        const processTx = await executerSigher.processProposal(id);
+
+        await expect(processTx)
+          .to.emit(governance, "ProposalProcessed")
+          .withArgs(id, executer.address, 1);
+      });
+
+      it("Should emit ProposalProcessed event with ProposalState.Canceled", async () => {
+        const {
+          contracts: { governance },
+          users: { user1, user2, executer },
+        } = await loadFixture(deploy);
+
+        const executerSigher = governance.connect(executer);
+        const user1Sigher = governance.connect(user1);
+        const user2Sigher = governance.connect(user2);
+
+        await user1Sigher.createProposal(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        const id = await user1Sigher.createProposal.staticCall(
+          ...encodeParameters(["setX"], [1000], "Set X to 1000"),
+        );
+
+        await mine(101, { interval: 0 });
+
+        await user2Sigher.voteForProposal(id, false);
+
+        await mine(101, { interval: 0 });
+
+        const processTx = await executerSigher.processProposal(id);
+
+        await expect(processTx)
+          .to.emit(governance, "ProposalProcessed")
+          .withArgs(id, executer.address, 2);
+      });
     });
   });
 });

@@ -6,6 +6,8 @@ import { Deposit } from "./DepositStorage.sol";
 
 import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
+import "hardhat/console.sol";
+
 contract RaffleExtended is Raffle {
     uint256 public X;
     uint256 public Y;

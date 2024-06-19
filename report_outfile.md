@@ -93,9 +93,10 @@
 | └ | voteForProposal | Public ❗️ | 🛑  |NO❗️ |
 | └ | _cancelProposal | Internal 🔒 | 🛑  | |
 | └ | _executeProposal | Internal 🔒 | 🛑  | |
+| └ | testX | Public ❗️ | 🛑  |NO❗️ |
+| └ | testXWithCallData | Public ❗️ | 🛑  |NO❗️ |
 | └ | processProposal | Public ❗️ | 🛑  | onlyRole |
 | └ | getProposal | Public ❗️ |   |NO❗️ |
-| └ | test | Public ❗️ |   |NO❗️ |
 ||||||
 | **ProposalStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |

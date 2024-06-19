@@ -28,14 +28,16 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
     using ProposalStorage for ProposalStorageState;
 
     event ProposalCreated(bytes32 indexed id, address indexed sender);
-    event ProposalVoted(bytes32 indexed id, address indexed voter);
+    event ProposalVoted(
+        bytes32 indexed id,
+        address indexed voter,
+        bool voteInFavor
+    );
     event ProposalProcessed(
         bytes32 indexed id,
         address indexed executer,
         ProposalState indexed state
     );
-
-    error UnauthorizedExecuter(address caller);
 
     constructor() Ownable(msg.sender) {}
 
@@ -48,6 +50,8 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
     ) public initializer onlyOwner {
         token = GovernanceToken(_token);
         raffle = RaffleExtended(_raffle);
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         percentageForProposal = _percentageForProposal;
         blocksBeforeVoting = _blocksBeforeVoting;
@@ -124,7 +128,7 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
             proposal.againstVotes += weight;
         }
 
-        emit ProposalVoted(id, msg.sender);
+        emit ProposalVoted(id, msg.sender, voteInFavor);
     }
 
     function _cancelProposal(bytes32 id, Proposal storage proposal) internal {
@@ -137,12 +141,24 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
         proposal.state = ProposalState.Executed;
 
         for (uint256 i = 0; i < proposal.calldatas.length; i++) {
-            (bool success, ) = address(raffle).call(proposal.calldatas[i]);
+            (bool success, ) = address(raffle).call{ gas: 500000 }(
+                proposal.calldatas[i]
+            );
 
             require(success, "MyGovernance: Proposal execution failed");
         }
 
         emit ProposalProcessed(id, msg.sender, ProposalState.Executed);
+    }
+
+    function testX() public {
+        (bool success, ) = address(raffle).call(
+            abi.encodeWithSignature("setX(uint256)", 5000)
+        );
+    }
+
+    function testXWithCallData(bytes memory _calldata) public {
+        (bool success, ) = address(raffle).call(_calldata);
     }
 
     function processProposal(bytes32 id) public onlyRole(EXECUTER_ROLE) {
@@ -151,10 +167,6 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
         require(
             proposal.votingStartedAt + block.number > blocksBeforeExecution,
             "MyGovernance: Execution period has not started"
-        );
-        require(
-            proposal.forVotes > proposal.againstVotes,
-            "MyGovernance: Proposal has not passed"
         );
         require(
             proposal.state != ProposalState.Executed ||
@@ -173,9 +185,5 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
         bytes32 id
     ) public view returns (Proposal memory proposal) {
         return _proposalsState.getData(id);
-    }
-
-    function test(string memory asd) public pure {
-        console.logString(asd);
     }
 }
