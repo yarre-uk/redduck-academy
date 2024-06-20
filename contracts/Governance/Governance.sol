@@ -144,9 +144,7 @@ contract Governance is Ownable, AccessControl, Initializable {
         proposal.state = ProposalState.Executed;
 
         for (uint256 i = 0; i < proposal.calldatas.length; i++) {
-            (bool success, ) = address(raffle).call{ gas: 500000 }(
-                proposal.calldatas[i]
-            );
+            (bool success, ) = address(raffle).call(proposal.calldatas[i]);
 
             require(success, "MyGovernance: Proposal execution failed");
         }
