@@ -7,8 +7,8 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 
 import {
+  GovernanceExtended__factory,
   GovernanceToken__factory,
-  MyGovernance__factory,
   RaffleExtended__factory,
 } from "../typechain-types";
 
@@ -36,7 +36,9 @@ describe("Governance", () => {
     const [owner, executer, user1, user2, user3, user4] =
       await ethers.getSigners();
 
-    const governanceContract = await new MyGovernance__factory(owner).deploy({
+    const governanceContract = await new GovernanceExtended__factory(
+      owner,
+    ).deploy({
       maxFeePerGas: 500000000,
     });
 
