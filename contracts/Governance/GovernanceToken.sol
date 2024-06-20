@@ -17,12 +17,10 @@ contract GovernanceToken is
     ERC20Votes,
     Ownable
 {
-    constructor(
-        address initialOwner
-    )
+    constructor()
         ERC20("GovernanceToken", "GTK")
         ERC20Permit("GovernanceToken")
-        Ownable(initialOwner)
+        Ownable(msg.sender)
     {}
 
     function _update(

@@ -11,7 +11,7 @@ import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable
 
 import "hardhat/console.sol";
 
-contract MyGovernance is Ownable, AccessControl, Initializable {
+contract Governance is Ownable, AccessControl, Initializable {
     bytes32 public constant EXECUTER_ROLE = keccak256("EXECUTER_ROLE");
 
     GovernanceToken public token;
@@ -22,8 +22,8 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
     uint256 public blocksBeforeVoting;
     uint256 public blocksBeforeExecution;
 
-    ProposalStorageState private _proposalsState;
-    mapping(bytes32 => mapping(address => bool)) private _votes;
+    ProposalStorageState internal _proposalsState;
+    mapping(bytes32 => mapping(address => bool)) internal _votes;
 
     using ProposalStorage for ProposalStorageState;
 
@@ -47,7 +47,7 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
         uint256 _percentageForProposal,
         uint256 _blocksBeforeVoting,
         uint256 _blocksBeforeExecution
-    ) public initializer onlyOwner {
+    ) public virtual initializer onlyOwner {
         token = GovernanceToken(_token);
         raffle = RaffleExtended(_raffle);
 
@@ -67,18 +67,15 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
         _;
     }
 
-    function grantRoleExecuter(address account) public onlyOwner {
-        grantRole(EXECUTER_ROLE, account);
-    }
-
-    function revokeRoleExecuter(address account) public onlyOwner {
-        revokeRole(EXECUTER_ROLE, account);
-    }
-
     function createProposal(
         bytes[] memory _calldatas,
         string memory _description
-    ) public hasEnoughPercentage(percentageForProposal) returns (bytes32 id) {
+    )
+        public
+        virtual
+        hasEnoughPercentage(percentageForProposal)
+        returns (bytes32 id)
+    {
         Proposal memory proposal = Proposal({
             sender: msg.sender,
             calldatas: _calldatas,
@@ -95,7 +92,7 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
         emit ProposalCreated(id, msg.sender);
     }
 
-    function voteForProposal(bytes32 id, bool voteInFavor) public {
+    function voteForProposal(bytes32 id, bool voteInFavor) public virtual {
         Proposal storage proposal = _proposalsState.getData(id);
 
         require(
@@ -131,13 +128,19 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
         emit ProposalVoted(id, msg.sender, voteInFavor);
     }
 
-    function _cancelProposal(bytes32 id, Proposal storage proposal) internal {
+    function _cancelProposal(
+        bytes32 id,
+        Proposal storage proposal
+    ) internal virtual {
         proposal.state = ProposalState.Canceled;
 
         emit ProposalProcessed(id, msg.sender, ProposalState.Canceled);
     }
 
-    function _executeProposal(bytes32 id, Proposal storage proposal) internal {
+    function _executeProposal(
+        bytes32 id,
+        Proposal storage proposal
+    ) internal virtual {
         proposal.state = ProposalState.Executed;
 
         for (uint256 i = 0; i < proposal.calldatas.length; i++) {
@@ -151,17 +154,9 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
         emit ProposalProcessed(id, msg.sender, ProposalState.Executed);
     }
 
-    function testX() public {
-        (bool success, ) = address(raffle).call(
-            abi.encodeWithSignature("setX(uint256)", 5000)
-        );
-    }
-
-    function testXWithCallData(bytes memory _calldata) public {
-        (bool success, ) = address(raffle).call(_calldata);
-    }
-
-    function processProposal(bytes32 id) public onlyRole(EXECUTER_ROLE) {
+    function processProposal(
+        bytes32 id
+    ) public virtual onlyRole(EXECUTER_ROLE) {
         Proposal storage proposal = _proposalsState.getData(id);
 
         require(
@@ -179,11 +174,5 @@ contract MyGovernance is Ownable, AccessControl, Initializable {
         } else {
             _executeProposal(id, proposal);
         }
-    }
-
-    function getProposal(
-        bytes32 id
-    ) public view returns (Proposal memory proposal) {
-        return _proposalsState.getData(id);
     }
 }

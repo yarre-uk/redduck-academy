@@ -10,8 +10,9 @@
 | contracts/ERC20/TradableERC20.sol | [object Promise] |
 | contracts/ERC20/VotingERC20.sol | [object Promise] |
 | contracts/ERC20/YarreToken.sol | [object Promise] |
+| contracts/Governance/Governance.sol | [object Promise] |
+| contracts/Governance/GovernanceExtended.sol | [object Promise] |
 | contracts/Governance/GovernanceToken.sol | [object Promise] |
-| contracts/Governance/MyGovernance.sol | [object Promise] |
 | contracts/Governance/ProposalStorage.sol | [object Promise] |
 | contracts/interfaces/IWETH.sol | [object Promise] |
 | contracts/Raffle/DepositStorage.sol | [object Promise] |
@@ -78,25 +79,30 @@
 | **YarreToken** | Implementation | TradableERC20 |||
 | └ | <Constructor> | Public ❗️ | 🛑  | TradableERC20 |
 ||||||
+| **Governance** | Implementation | Ownable, AccessControl, Initializable |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
+| └ | createProposal | Public ❗️ | 🛑  | hasEnoughPercentage |
+| └ | voteForProposal | Public ❗️ | 🛑  |NO❗️ |
+| └ | _cancelProposal | Internal 🔒 | 🛑  | |
+| └ | _executeProposal | Internal 🔒 | 🛑  | |
+| └ | processProposal | Public ❗️ | 🛑  | onlyRole |
+||||||
+| **GovernanceExtended** | Implementation | Governance |||
+| └ | grantRoleExecuter | Public ❗️ | 🛑  | onlyOwner |
+| └ | revokeRoleExecuter | Public ❗️ | 🛑  | onlyOwner |
+| └ | setTokenAddress | Public ❗️ | 🛑  | onlyOwner |
+| └ | setRaffleAddress | Public ❗️ | 🛑  | onlyOwner |
+| └ | setPercentageForProposal | Public ❗️ | 🛑  | onlyOwner |
+| └ | setBlocksBeforeVoting | Public ❗️ | 🛑  | onlyOwner |
+| └ | setBlocksBeforeExecution | Public ❗️ | 🛑  | onlyOwner |
+| └ | getProposal | Public ❗️ |   |NO❗️ |
+||||||
 | **GovernanceToken** | Implementation | ERC20, ERC20Burnable, ERC20Permit, ERC20Votes, Ownable |||
 | └ | <Constructor> | Public ❗️ | 🛑  | ERC20 ERC20Permit Ownable |
 | └ | _update | Internal 🔒 | 🛑  | |
 | └ | nonces | Public ❗️ |   |NO❗️ |
 | └ | mint | Public ❗️ | 🛑  | onlyOwner |
-||||||
-| **MyGovernance** | Implementation | Ownable, AccessControl, Initializable |||
-| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
-| └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
-| └ | grantRoleExecuter | Public ❗️ | 🛑  | onlyOwner |
-| └ | revokeRoleExecuter | Public ❗️ | 🛑  | onlyOwner |
-| └ | createProposal | Public ❗️ | 🛑  | hasEnoughPercentage |
-| └ | voteForProposal | Public ❗️ | 🛑  |NO❗️ |
-| └ | _cancelProposal | Internal 🔒 | 🛑  | |
-| └ | _executeProposal | Internal 🔒 | 🛑  | |
-| └ | testX | Public ❗️ | 🛑  |NO❗️ |
-| └ | testXWithCallData | Public ❗️ | 🛑  |NO❗️ |
-| └ | processProposal | Public ❗️ | 🛑  | onlyRole |
-| └ | getProposal | Public ❗️ |   |NO❗️ |
 ||||||
 | **ProposalStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |

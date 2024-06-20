@@ -36,13 +36,17 @@ describe("Governance", () => {
     const [owner, executer, user1, user2, user3, user4] =
       await ethers.getSigners();
 
-    const governanceContract = await new MyGovernance__factory(owner).deploy();
+    const governanceContract = await new MyGovernance__factory(owner).deploy({
+      maxFeePerGas: 500000000,
+    });
 
-    const raffleContract = await new RaffleExtended__factory(owner).deploy();
+    const raffleContract = await new RaffleExtended__factory(owner).deploy({
+      maxFeePerGas: 500000000,
+    });
 
-    const tokenContract = await new GovernanceToken__factory(owner).deploy(
-      owner,
-    );
+    const tokenContract = await new GovernanceToken__factory(owner).deploy({
+      maxFeePerGas: 500000000,
+    });
 
     await tokenContract.mint(owner.address, 1000000);
 
