@@ -3,21 +3,12 @@ import "@nomicfoundation/hardhat-verify";
 import { ethers } from "ethers";
 import { type HardhatUserConfig } from "hardhat/config";
 
-import { ETHERSCAN_API_KEY, INFURA_API_KEY, PRIVATE_KEY } from "./env";
-
-function generateRandomPrivateKeys(count: number): string[] {
-  const privateKeys = [];
-  for (let i = 0; i < count; i++) {
-    const wallet = ethers.Wallet.createRandom();
-    privateKeys.push(wallet.privateKey);
-  }
-  return privateKeys;
-}
-
-const accounts = generateRandomPrivateKeys(10).map((key) => ({
-  privateKey: key,
-  balance: ethers.parseEther("10000").toString(),
-}));
+import {
+  ETHERSCAN_API_KEY,
+  INFURA_API_KEY,
+  MNEMONICS,
+  PRIVATE_KEY,
+} from "./env";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -45,13 +36,10 @@ const config: HardhatUserConfig = {
         blockNumber: 6135000,
         // url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
       },
-      accounts: [
-        {
-          privateKey: PRIVATE_KEY,
-          balance: ethers.parseEther("10000").toString(),
-        },
-        ...accounts,
-      ],
+      accounts: {
+        mnemonic: MNEMONICS,
+        accountsBalance: ethers.parseEther("100000").toString(),
+      },
     },
   },
   sourcify: {

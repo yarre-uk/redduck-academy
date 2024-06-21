@@ -104,7 +104,7 @@ contract Governance is Ownable, AccessControl, Initializable {
             "MyGovernance: Sender has already voted"
         );
         require(
-            proposal.votingStartedAt + block.number > blocksBeforeVoting,
+            proposal.proposedAt + blocksBeforeVoting < block.number,
             "MyGovernance: Voting period has not started"
         );
 

@@ -6,7 +6,7 @@ const pk1 = "";
 const pk2 = "";
 const pk3 = "";
 
-const tokenAddress = "0xFc69dDa9f2b09beFEfd5F5061c51ee164F42881A";
+const tokenAddress = "0xB3BDFD65Ac61282C6Fb6De70D3B571b8AF08E613";
 
 async function main() {
   const provider = ethers.provider;
