@@ -167,7 +167,10 @@ contract Governance is Ownable, AccessControl, Initializable {
             "MyGovernance: Proposal has been processed"
         );
 
-        if (proposal.forVotes <= proposal.againstVotes) {
+        if (
+            proposal.forVotes <= proposal.againstVotes ||
+            proposal.forVotes == proposal.againstVotes
+        ) {
             _cancelProposal(id, proposal);
         } else {
             _executeProposal(id, proposal);
