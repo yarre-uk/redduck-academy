@@ -6,6 +6,8 @@ import { GovernanceToken } from "./GovernanceToken.sol";
 import { RaffleExtended } from "../Raffle/RaffleExtended.sol";
 import { Proposal, ProposalStorage, ProposalStorageState } from "./ProposalStorage.sol";
 
+import "hardhat/console.sol";
+
 contract GovernanceExtended is Governance {
     using ProposalStorage for ProposalStorageState;
 
@@ -44,8 +46,25 @@ contract GovernanceExtended is Governance {
     }
 
     function getProposal(
-        bytes32 id
+        bytes32 _id
     ) public view returns (Proposal memory proposal) {
-        return _proposalsState.getData(id);
+        return _proposalsState.getData(_id);
+    }
+
+    function getProposals(
+        bytes32[] memory _ids
+    ) public view returns (Proposal[] memory) {
+        console.log(1);
+        Proposal[] memory proposals = new Proposal[](_ids.length);
+        console.log(2);
+
+        for (uint256 i = 0; i < _ids.length; i++) {
+            proposals[i] = _proposalsState.getData(_ids[i]);
+            console.log("-->", i);
+        }
+
+        console.log(3);
+
+        return proposals;
     }
 }

@@ -17,7 +17,7 @@ export default buildModule("ProxyGovernance", (m) => {
     id: "Governance___FinalProxy",
   });
 
-  m.call(proxyGovernance, "initialize", [proxyRaffle, token, 100, 100, 100]);
+  m.call(proxyGovernance, "initialize", [token, proxyRaffle, 100, 100, 100]);
 
   return { proxyGovernance, proxyRaffle, token };
 });

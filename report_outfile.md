@@ -97,6 +97,7 @@
 | └ | setBlocksBeforeVoting | Public ❗️ | 🛑  | onlyOwner |
 | └ | setBlocksBeforeExecution | Public ❗️ | 🛑  | onlyOwner |
 | └ | getProposal | Public ❗️ |   |NO❗️ |
+| └ | getProposals | Public ❗️ |   |NO❗️ |
 ||||||
 | **GovernanceToken** | Implementation | ERC20, ERC20Burnable, ERC20Permit, ERC20Votes, Ownable |||
 | └ | <Constructor> | Public ❗️ | 🛑  | ERC20 ERC20Permit Ownable |
