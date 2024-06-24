@@ -2,17 +2,10 @@ import { ethers } from "hardhat";
 
 import { abi as tokenAbi } from "../artifacts/contracts/Governance/GovernanceToken.sol/GovernanceToken.json";
 
-const pk1 = "";
-const pk2 = "";
-const pk3 = "";
-
-const tokenAddress = "0xB3BDFD65Ac61282C6Fb6De70D3B571b8AF08E613";
+const tokenAddress = "0xC20f1D53b269B9F8be1d6B582a727D14b2D0d8bD";
 
 async function main() {
-  const provider = ethers.provider;
-  const wallet1 = new ethers.Wallet(pk1).connect(provider);
-  const wallet2 = new ethers.Wallet(pk2).connect(provider);
-  const wallet3 = new ethers.Wallet(pk3).connect(provider);
+  const [wallet1, wallet2, wallet3] = await ethers.getSigners();
 
   const token1 = new ethers.Contract(tokenAddress, tokenAbi, wallet1);
   const token2 = new ethers.Contract(tokenAddress, tokenAbi, wallet2);
