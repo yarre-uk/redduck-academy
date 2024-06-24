@@ -44,6 +44,7 @@ contract Governance is Ownable, AccessControl, Initializable {
     function initialize(
         address payable _token,
         address _raffle,
+        address _defaultExecuter,
         uint256 _percentageForProposal,
         uint256 _blocksBeforeVoting,
         uint256 _blocksBeforeExecution
@@ -52,6 +53,7 @@ contract Governance is Ownable, AccessControl, Initializable {
         raffle = RaffleExtended(_raffle);
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(EXECUTER_ROLE, _defaultExecuter);
 
         percentageForProposal = _percentageForProposal;
         blocksBeforeVoting = _blocksBeforeVoting;
@@ -107,6 +109,15 @@ contract Governance is Ownable, AccessControl, Initializable {
             proposal.proposedAt + blocksBeforeVoting < block.number,
             "MyGovernance: Voting period has not started"
         );
+        require(
+            proposal.votingStartedAt + blocksBeforeExecution > block.number ||
+                proposal.votingStartedAt == 0,
+            "MyGovernance: Voting period has ended"
+        );
+        require(
+            proposal.state == ProposalState.Created,
+            "MyGovernance: Proposal has been processed"
+        );
 
         uint256 weight = token.getPastVotes(
             msg.sender,
@@ -124,6 +135,8 @@ contract Governance is Ownable, AccessControl, Initializable {
         } else {
             proposal.againstVotes += weight;
         }
+
+        _votes[id][msg.sender] = true;
 
         emit ProposalVoted(id, msg.sender, voteInFavor);
     }

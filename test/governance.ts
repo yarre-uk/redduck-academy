@@ -65,12 +65,11 @@ describe("Governance", () => {
     await governanceContract.initialize(
       await tokenContract.getAddress(),
       await raffleContract.getAddress(),
+      executer.address,
       100,
       100,
       100,
     );
-
-    await governanceContract.grantRoleExecuter(executer.address);
 
     await raffleContract.setGovernor(await governanceContract.getAddress());
 
