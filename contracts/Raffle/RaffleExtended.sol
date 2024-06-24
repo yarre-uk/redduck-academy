@@ -97,20 +97,38 @@ contract RaffleExtended is Raffle {
     }
 
     function _concludeWithdraw(Deposit storage depositNode) internal override {
-        require(X + Y + Z == 100000, "Invalid distribution");
-
-        TransferHelper.safeTransfer(whitelist[0], staking, (pool * X) / 100000);
-        TransferHelper.safeTransfer(whitelist[0], founder, (pool * Y) / 100000);
-        TransferHelper.safeTransfer(
-            whitelist[0],
-            depositNode.sender,
-            (pool * Z) / 100000
-        );
+        uint256 _pool = pool;
 
         raffleId++;
         depositState.lastDepositId = bytes32(0);
         pool = 0;
         status = RaffleStatus.FINISHED;
+
+        TransferHelper.safeTransfer(
+            whitelist[0],
+            staking,
+            (_pool * X) / 100000
+        );
+        TransferHelper.safeTransfer(
+            whitelist[0],
+            founder,
+            (_pool * Y) / 100000
+        );
+        TransferHelper.safeTransfer(
+            whitelist[0],
+            depositNode.sender,
+            (_pool * Z) / 100000
+        );
+
+        uint256 leftOver = 100000 - X - Y - Z;
+
+        if (leftOver > 0) {
+            TransferHelper.safeTransfer(
+                whitelist[0],
+                owner(),
+                (pool * leftOver) / 100000
+            );
+        }
 
         emit RaffleFinished(raffleId - 1);
     }
