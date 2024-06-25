@@ -8,7 +8,8 @@ enum OrderType {
 
 enum OrderStatus {
     Created,
-    Processed
+    Processed,
+    Canceled
 }
 
 struct MarketplaceStorageState {

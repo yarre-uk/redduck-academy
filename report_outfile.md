@@ -129,6 +129,9 @@
 | **Marketplace** | Implementation | Ownable, AccessControl, Initializable |||
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
 | └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
+| └ | createOrder | External ❗️ | 🛑  |NO❗️ |
+| └ | processOrder | External ❗️ | 🛑  |NO❗️ |
+| └ | cancelOrder | External ❗️ | 🛑  |NO❗️ |
 ||||||
 | **ProposalStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |

@@ -8,8 +8,6 @@ import { ERC20Votes } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC20Burnable } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
-import "hardhat/console.sol";
-
 contract GovernanceToken is
     ERC20,
     ERC20Burnable,
