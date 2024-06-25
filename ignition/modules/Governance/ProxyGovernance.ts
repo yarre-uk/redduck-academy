@@ -2,7 +2,8 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { ethers } from "hardhat";
 
 import Governance from "./Governance";
-import RaffleProxy from "./ProxyRaffle";
+
+import RaffleProxy from "../Raffle/ProxyRaffle";
 
 export default buildModule("ProxyGovernance", (m) => {
   const _proxy = m.contract("MyProxy", []);

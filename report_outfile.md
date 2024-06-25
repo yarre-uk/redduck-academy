@@ -18,6 +18,7 @@
 | contracts/Marketplace/ERC721.sol | [object Promise] |
 | contracts/Marketplace/Marketplace.sol | [object Promise] |
 | contracts/Marketplace/MarketplaceStorage.sol | [object Promise] |
+| contracts/Marketplace/WETH.sol | [object Promise] |
 | contracts/Raffle/DepositStorage.sol | [object Promise] |
 | contracts/Raffle/Raffle.sol | [object Promise] |
 | contracts/Raffle/RaffleExtended.sol | [object Promise] |
@@ -132,12 +133,22 @@
 | └ | createOrder | External ❗️ | 🛑  |NO❗️ |
 | └ | processOrder | External ❗️ | 🛑  |NO❗️ |
 | └ | cancelOrder | External ❗️ | 🛑  |NO❗️ |
+| └ | getOrder | External ❗️ |   |NO❗️ |
 ||||||
 | **ProposalStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |
 | └ | isEmpty | Internal 🔒 |   | |
 | └ | addData | Internal 🔒 | 🛑  | |
 | └ | getData | Internal 🔒 |   | |
+||||||
+| **WETH** | Implementation |  |||
+| └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
+| └ | deposit | Public ❗️ |  💵 |NO❗️ |
+| └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
+| └ | totalSupply | Public ❗️ |   |NO❗️ |
+| └ | approve | Public ❗️ | 🛑  |NO❗️ |
+| └ | transfer | Public ❗️ | 🛑  |NO❗️ |
+| └ | transferFrom | Public ❗️ | 🛑  |NO❗️ |
 ||||||
 | **DepositStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |

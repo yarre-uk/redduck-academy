@@ -7,12 +7,14 @@ import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable
 
 import { OrderType, OrderStatus, MarketplaceStorageState, Order, ProposalStorage } from "./MarketplaceStorage.sol";
 import { MyERC721 } from "./ERC721.sol";
+import { WETH } from "./WETH.sol";
 
 contract Marketplace is Ownable, AccessControl, Initializable {
     MarketplaceStorageState internal _ordersState;
     using ProposalStorage for MarketplaceStorageState;
 
     MyERC721 internal _nftContract;
+    WETH internal _wethContract;
 
     event OrderCreated(
         bytes32 indexed id,
@@ -27,21 +29,28 @@ contract Marketplace is Ownable, AccessControl, Initializable {
 
     constructor() Ownable(msg.sender) {}
 
-    function initialize(MyERC721 _token) public virtual initializer onlyOwner {
+    function initialize(
+        MyERC721 _tokenNft,
+        WETH _tokenWeth
+    ) public virtual initializer onlyOwner {
         require(
-            address(_token) != address(0),
+            address(_tokenNft) != address(0),
             "Marketplace: Invalid NFT contract address"
         );
+        require(
+            address(_tokenWeth) != address(0),
+            "Marketplace: Invalid WETH contract address"
+        );
 
-        _nftContract = _token;
+        _nftContract = _tokenNft;
+        _wethContract = _tokenWeth;
     }
 
     function createOrder(
         uint256 _price,
         uint256 _nftId,
         OrderType _orderType
-    ) external {
-        require(_nftId > 0, "Marketplace: Invalid NFT ID");
+    ) external returns (bytes32) {
         require(_price > 0, "Marketplace: Invalid price");
         require(
             _nftContract.ownerOf(_nftId) == msg.sender,
@@ -60,6 +69,8 @@ contract Marketplace is Ownable, AccessControl, Initializable {
         _ordersState.addData(order);
 
         emit OrderCreated(_ordersState.lastOrderId, msg.sender, OrderType.Sell);
+
+        return _ordersState.lastOrderId;
     }
 
     function processOrder(bytes32 _sellOrderId, bytes32 _buyOrderId) external {
@@ -91,6 +102,16 @@ contract Marketplace is Ownable, AccessControl, Initializable {
             "Marketplace: Invalid NFT ID"
         );
 
+        require(
+            _wethContract.balanceOf(buyOrder.sender) >= buyOrder.price,
+            "Marketplace: Insufficient WETH balance"
+        );
+        require(
+            _wethContract.allowance(buyOrder.sender, address(this)) >=
+                buyOrder.price,
+            "Marketplace: Insufficient WETH allowance"
+        );
+
         sellOrder.status = OrderStatus.Processed;
         buyOrder.status = OrderStatus.Processed;
 
@@ -98,6 +119,12 @@ contract Marketplace is Ownable, AccessControl, Initializable {
             sellOrder.sender,
             buyOrder.sender,
             sellOrder.nftId
+        );
+
+        _wethContract.transferFrom(
+            buyOrder.sender,
+            sellOrder.sender,
+            buyOrder.price
         );
 
         emit OrderProcessed(_sellOrderId, msg.sender, OrderStatus.Processed);
@@ -119,5 +146,11 @@ contract Marketplace is Ownable, AccessControl, Initializable {
         order.status = OrderStatus.Canceled;
 
         emit OrderProcessed(_orderId, msg.sender, OrderStatus.Canceled);
+    }
+
+    function getOrder(
+        bytes32 _orderId
+    ) external view returns (Order memory order) {
+        return _ordersState.getData(_orderId);
     }
 }
