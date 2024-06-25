@@ -16,6 +16,8 @@ contract Marketplace is Ownable, AccessControl, Initializable {
     MyERC721 internal _nftContract;
     WETH internal _wethContract;
 
+    mapping(uint256 => mapping(address => bool)) public ordered;
+
     event OrderCreated(
         bytes32 indexed id,
         address indexed sender,
@@ -53,8 +55,13 @@ contract Marketplace is Ownable, AccessControl, Initializable {
     ) external returns (bytes32) {
         require(_price > 0, "Marketplace: Invalid price");
         require(
-            _nftContract.ownerOf(_nftId) == msg.sender,
+            _nftContract.ownerOf(_nftId) == msg.sender ||
+                _orderType == OrderType.Buy,
             "Marketplace: Not the owner of the NFT"
+        );
+        require(
+            ordered[_nftId][msg.sender] != true,
+            "Marketplace: NFT already ordered this way"
         );
 
         Order memory order = Order({
@@ -67,6 +74,7 @@ contract Marketplace is Ownable, AccessControl, Initializable {
         });
 
         _ordersState.addData(order);
+        ordered[_nftId][msg.sender] = true;
 
         emit OrderCreated(_ordersState.lastOrderId, msg.sender, OrderType.Sell);
 
@@ -114,6 +122,8 @@ contract Marketplace is Ownable, AccessControl, Initializable {
 
         sellOrder.status = OrderStatus.Processed;
         buyOrder.status = OrderStatus.Processed;
+        ordered[sellOrder.nftId][sellOrder.sender] = false;
+        ordered[sellOrder.nftId][buyOrder.sender] = true;
 
         _nftContract.safeTransferFrom(
             sellOrder.sender,
@@ -144,6 +154,7 @@ contract Marketplace is Ownable, AccessControl, Initializable {
         );
 
         order.status = OrderStatus.Canceled;
+        ordered[order.nftId][order.sender] = false;
 
         emit OrderProcessed(_orderId, msg.sender, OrderStatus.Canceled);
     }
