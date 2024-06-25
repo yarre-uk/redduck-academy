@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import { IERC20 } from "./IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract BaseERC20 is IERC20, Ownable {
     uint256 internal _totalSupply;

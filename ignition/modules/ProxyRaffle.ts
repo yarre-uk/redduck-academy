@@ -1,15 +1,16 @@
-import { ethers } from "hardhat";
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-import { abi as raffleAbi } from "../artifacts/contracts/Raffle/RaffleExtended.sol/RaffleExtended.json";
-import { PRIVATE_KEY } from "../env";
+import Raffle from "./Raffle";
 
-const proxyAddress = "0x029eA2C522E88A82FDeb881D9cd3576c30eC3F38";
+export default buildModule("ProxyRaffle", (m) => {
+  const _proxy = m.contract("MyProxy", []);
+  const { raffle } = m.useModule(Raffle);
 
-async function main() {
-  const provider = ethers.provider;
-  const wallet = new ethers.Wallet(PRIVATE_KEY).connect(provider);
+  m.call(_proxy, "setImplementation", [raffle]);
 
-  const proxyContract = new ethers.Contract(proxyAddress, raffleAbi, wallet);
+  const proxy = m.contractAt("RaffleExtended", _proxy, {
+    id: "Raffle___FinalProxy",
+  });
 
   const weth = "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9";
   const link = "0x779877A7B0D9E8603169DdbD7836e478b4624789";
@@ -26,18 +27,13 @@ async function main() {
 
   const vrfCoordinator = "0x9ddfaca8183c41ad55329bdeed9f6a8d53168b1b";
 
-  await proxyContract.initialize(
+  m.call(proxy, "initialize", [
     approvedTokens,
     uniswapRouter,
     subscriptionId,
     keyHash,
     vrfCoordinator,
-  );
-}
+  ]);
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+  return { proxy, raffle };
+});

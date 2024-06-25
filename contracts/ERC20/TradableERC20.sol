@@ -38,12 +38,6 @@ contract TradableERC20 is VotingERC20 {
 
         deleteNode(oldId);
 
-        // console.log(_price, oldListAmount, _prevAmount, newAmount);
-
-        // console.logBytes32(oldId);
-        // console.logUint(price);
-        // console.logUint(oldListAmount - oldAmount + _newAmount);
-
         insert(
             votingId,
             _prevId,
@@ -156,14 +150,14 @@ contract TradableERC20 is VotingERC20 {
         _transferFromInternal(msg.sender, address(this), _amount);
         _burn(address(this), _amount - fee);
 
-        payable(msg.sender).transfer(value);
-
         _updateVoteOnInteraction(
             _id,
             msg.sender,
             _balances[msg.sender] + _amount,
             userVote[votingId][msg.sender]
         );
+
+        payable(msg.sender).transfer(value);
     }
 
     function transfer(

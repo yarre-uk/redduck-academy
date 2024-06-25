@@ -94,6 +94,12 @@ abstract contract Raffle is
 
         uint256 deposited;
 
+        if (status == RaffleStatus.FINISHED) {
+            status = RaffleStatus.OPEN;
+            startedAt = block.timestamp;
+            emit RaffleStarted(raffleId);
+        }
+
         if (_tokenIndex != 0) {
             TransferHelper.safeTransferFrom(
                 whitelist[_tokenIndex],
@@ -148,12 +154,6 @@ abstract contract Raffle is
         });
 
         depositState.addNode(depositDto);
-
-        if (status == RaffleStatus.FINISHED) {
-            status = RaffleStatus.OPEN;
-            startedAt = block.timestamp;
-            emit RaffleStarted(raffleId);
-        }
 
         emit Deposited(
             raffleId,
