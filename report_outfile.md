@@ -15,6 +15,9 @@
 | contracts/Governance/GovernanceToken.sol | [object Promise] |
 | contracts/Governance/ProposalStorage.sol | [object Promise] |
 | contracts/interfaces/IWETH.sol | [object Promise] |
+| contracts/Marketplace/ERC721.sol | [object Promise] |
+| contracts/Marketplace/Marketplace.sol | [object Promise] |
+| contracts/Marketplace/MarketplaceStorage.sol | [object Promise] |
 | contracts/Raffle/DepositStorage.sol | [object Promise] |
 | contracts/Raffle/Raffle.sol | [object Promise] |
 | contracts/Raffle/RaffleExtended.sol | [object Promise] |
@@ -117,6 +120,21 @@
 | └ | balanceOf | External ❗️ |   |NO❗️ |
 | └ | transfer | External ❗️ | 🛑  |NO❗️ |
 | └ | approve | External ❗️ | 🛑  |NO❗️ |
+||||||
+| **MyERC721** | Implementation | ERC721URIStorage, Ownable |||
+| └ | <Constructor> | Public ❗️ | 🛑  | ERC721 Ownable |
+| └ | createNFT | Public ❗️ | 🛑  |NO❗️ |
+| └ | burnNFT | Public ❗️ | 🛑  |NO❗️ |
+||||||
+| **Marketplace** | Implementation | Ownable, AccessControl, Initializable |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
+||||||
+| **ProposalStorage** | Library |  |||
+| └ | getId | Internal 🔒 |   | |
+| └ | isEmpty | Internal 🔒 |   | |
+| └ | addData | Internal 🔒 | 🛑  | |
+| └ | getData | Internal 🔒 |   | |
 ||||||
 | **DepositStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |

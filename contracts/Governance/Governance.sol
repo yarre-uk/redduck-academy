@@ -9,8 +9,6 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "hardhat/console.sol";
-
 contract Governance is Ownable, AccessControl, Initializable {
     bytes32 public constant EXECUTER_ROLE = keccak256("EXECUTER_ROLE");
 
