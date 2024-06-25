@@ -54,13 +54,10 @@ contract GovernanceExtended is Governance {
     function getProposals(
         bytes32[] memory _ids
     ) public view returns (Proposal[] memory) {
-        console.log(1);
         Proposal[] memory proposals = new Proposal[](_ids.length);
-        console.log(2);
 
         for (uint256 i = 0; i < _ids.length; i++) {
             proposals[i] = _proposalsState.getData(_ids[i]);
-            console.log("-->", i);
         }
 
         console.log(3);

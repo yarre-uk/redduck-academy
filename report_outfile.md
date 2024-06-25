@@ -150,6 +150,7 @@
 | └ | setZ | Public ❗️ | 🛑  | onlyOwnerOrGovernor |
 | └ | setFounder | Public ❗️ | 🛑  | onlyOwner |
 | └ | setStaking | Public ❗️ | 🛑  | onlyOwner |
+| └ | setStatus | Public ❗️ | 🛑  | onlyOwner |
 | └ | _concludeWithdraw | Internal 🔒 | 🛑  | |
 ||||||
 | **MyProxy** | Implementation | Ownable, Proxy |||

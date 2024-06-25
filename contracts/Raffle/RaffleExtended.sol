@@ -96,6 +96,10 @@ contract RaffleExtended is Raffle {
         staking = _staking;
     }
 
+    function setStatus(RaffleStatus _status) public onlyOwner {
+        status = _status;
+    }
+
     function _concludeWithdraw(Deposit storage depositNode) internal override {
         uint256 _pool = pool;
 

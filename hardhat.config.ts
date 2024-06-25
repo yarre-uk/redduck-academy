@@ -3,12 +3,7 @@ import "@nomicfoundation/hardhat-verify";
 import { ethers } from "ethers";
 import { type HardhatUserConfig } from "hardhat/config";
 
-import {
-  ETHERSCAN_API_KEY,
-  INFURA_API_KEY,
-  MNEMONICS,
-  PRIVATE_KEY,
-} from "./env";
+import { ETHERSCAN_API_KEY, INFURA_API_KEY, MNEMONICS } from "./env";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -27,14 +22,16 @@ const config: HardhatUserConfig = {
   networks: {
     sepolia: {
       url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [PRIVATE_KEY],
+      accounts: {
+        mnemonic: MNEMONICS,
+      },
+      gas: 9_000_000,
     },
     hardhat: {
       chainId: 1337,
       forking: {
         url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
         blockNumber: 6135000,
-        // url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
       },
       accounts: {
         mnemonic: MNEMONICS,
