@@ -6,7 +6,7 @@ import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol"
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import { OrderType, OrderStatus, MarketplaceStorageState, Order, ProposalStorage } from "./MarketplaceStorage.sol";
-import { MyERC721 } from "./ERC721.sol";
+import { MyERC721 } from "./MyERC721.sol";
 import { WETH } from "./WETH.sol";
 
 contract Marketplace is Ownable, AccessControl, Initializable {

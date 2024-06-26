@@ -11,7 +11,7 @@ export default buildModule("ProxyMarketplace", (m) => {
 
   m.call(_proxy, "setImplementation", [marketplace]);
 
-  const proxyMarketplace = m.contractAt("Marketplace", _proxy, {
+  const proxyMarketplace = m.contractAt("MarketplaceExtended", _proxy, {
     id: "Marketplace___FinalProxy",
   });
 

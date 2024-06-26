@@ -23,6 +23,10 @@ contract WETH {
         emit Deposit(msg.sender, msg.value);
     }
 
+    function mint(uint256 wad) public {
+        balanceOf[msg.sender] += wad;
+    }
+
     function withdraw(uint256 wad) public {
         require(balanceOf[msg.sender] >= wad);
         balanceOf[msg.sender] -= wad;
