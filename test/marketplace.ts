@@ -4,7 +4,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 
 import {
-  Marketplace__factory,
+  MarketplaceExtended__factory,
   MyERC721__factory,
   WETH__factory,
 } from "../typechain-types";
@@ -37,7 +37,7 @@ describe("Governance", () => {
 
     const weth = await new WETH__factory(owner).deploy();
     const nft = await new MyERC721__factory(owner).deploy();
-    const marketplace = await new Marketplace__factory(owner).deploy();
+    const marketplace = await new MarketplaceExtended__factory(owner).deploy();
 
     await marketplace.initialize(
       await nft.getAddress(),
@@ -144,7 +144,9 @@ describe("Governance", () => {
 
         const ids = (
           await marketplace.queryFilter(
-            marketplace.filters["OrderCreated(bytes32,address,uint8)"](),
+            marketplace.filters[
+              "OrderCreated(bytes32,address,uint8,uint256,uint256,uint256)"
+            ](),
           )
         ).map(({ args }) => args.id);
 
@@ -166,7 +168,9 @@ describe("Governance", () => {
 
         const ids = (
           await marketplace.queryFilter(
-            marketplace.filters["OrderCreated(bytes32,address,uint8)"](),
+            marketplace.filters[
+              "OrderCreated(bytes32,address,uint8,uint256,uint256,uint256)"
+            ](),
           )
         ).map(({ args }) => args.id);
 
@@ -189,7 +193,9 @@ describe("Governance", () => {
 
         const ids = (
           await marketplace.queryFilter(
-            marketplace.filters["OrderCreated(bytes32,address,uint8)"](),
+            marketplace.filters[
+              "OrderCreated(bytes32,address,uint8,uint256,uint256,uint256)"
+            ](),
           )
         ).map(({ args }) => args.id);
 
@@ -215,7 +221,9 @@ describe("Governance", () => {
 
         const ids = (
           await marketplace.queryFilter(
-            marketplace.filters["OrderCreated(bytes32,address,uint8)"](),
+            marketplace.filters[
+              "OrderCreated(bytes32,address,uint8,uint256,uint256,uint256)"
+            ](),
           )
         ).map(({ args }) => args.id);
 
@@ -243,7 +251,9 @@ describe("Governance", () => {
 
         const ids = (
           await marketplace.queryFilter(
-            marketplace.filters["OrderCreated(bytes32,address,uint8)"](),
+            marketplace.filters[
+              "OrderCreated(bytes32,address,uint8,uint256,uint256,uint256)"
+            ](),
           )
         ).map(({ args }) => args.id);
 
@@ -291,7 +301,9 @@ describe("Governance", () => {
 
         const ids = (
           await marketplace.queryFilter(
-            marketplace.filters["OrderCreated(bytes32,address,uint8)"](),
+            marketplace.filters[
+              "OrderCreated(bytes32,address,uint8,uint256,uint256,uint256)"
+            ](),
           )
         ).map(({ args }) => args.id);
 

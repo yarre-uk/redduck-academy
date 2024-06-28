@@ -129,11 +129,12 @@
 | └ | createOrder | External ❗️ | 🛑  |NO❗️ |
 | └ | processOrder | External ❗️ | 🛑  |NO❗️ |
 | └ | cancelOrder | External ❗️ | 🛑  |NO❗️ |
-| └ | getOrder | External ❗️ |   |NO❗️ |
 ||||||
 | **MarketplaceExtended** | Implementation | Marketplace |||
 | └ | setNFTContract | External ❗️ | 🛑  | onlyOwner |
 | └ | setWETHContract | External ❗️ | 🛑  | onlyOwner |
+| └ | getOrder | External ❗️ |   |NO❗️ |
+| └ | getOrders | External ❗️ |   |NO❗️ |
 ||||||
 | **ProposalStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |

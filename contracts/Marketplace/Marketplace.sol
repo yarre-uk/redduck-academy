@@ -21,7 +21,10 @@ contract Marketplace is Ownable, AccessControl, Initializable {
     event OrderCreated(
         bytes32 indexed id,
         address indexed sender,
-        OrderType indexed orderType
+        OrderType indexed orderType,
+        uint256 price,
+        uint256 nftId,
+        uint256 createdAt
     );
     event OrderProcessed(
         bytes32 indexed id,
@@ -76,7 +79,14 @@ contract Marketplace is Ownable, AccessControl, Initializable {
         _ordersState.addData(order);
         ordered[_nftId][msg.sender] = true;
 
-        emit OrderCreated(_ordersState.lastOrderId, msg.sender, OrderType.Sell);
+        emit OrderCreated(
+            _ordersState.lastOrderId,
+            msg.sender,
+            _orderType,
+            _price,
+            _nftId,
+            block.number
+        );
 
         return _ordersState.lastOrderId;
     }
@@ -157,11 +167,5 @@ contract Marketplace is Ownable, AccessControl, Initializable {
         ordered[order.nftId][order.sender] = false;
 
         emit OrderProcessed(_orderId, msg.sender, OrderStatus.Canceled);
-    }
-
-    function getOrder(
-        bytes32 _orderId
-    ) external view returns (Order memory order) {
-        return _ordersState.getData(_orderId);
     }
 }
