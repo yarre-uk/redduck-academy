@@ -17,6 +17,7 @@
 | contracts/interfaces/IWETH.sol | [object Promise] |
 | contracts/Marketplace/Marketplace.sol | [object Promise] |
 | contracts/Marketplace/MarketplaceExtended.sol | [object Promise] |
+| contracts/Marketplace/MarketplaceOff.sol | [object Promise] |
 | contracts/Marketplace/MarketplaceStorage.sol | [object Promise] |
 | contracts/Marketplace/MyERC721.sol | [object Promise] |
 | contracts/Marketplace/WETH.sol | [object Promise] |
@@ -135,6 +136,16 @@
 | └ | setWETHContract | External ❗️ | 🛑  | onlyOwner |
 | └ | getOrder | External ❗️ |   |NO❗️ |
 | └ | getOrders | External ❗️ |   |NO❗️ |
+| └ | setOrdered | External ❗️ | 🛑  | onlyOwner |
+||||||
+| **MarketplaceOff** | Implementation | Ownable, AccessControl, Initializable |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
+| └ | _verifyOrder | Internal 🔒 |   | |
+| └ | _getId | Internal 🔒 |   | |
+| └ | createOrder | External ❗️ | 🛑  |NO❗️ |
+| └ | processOrder | External ❗️ | 🛑  |NO❗️ |
+| └ | cancelOrder | External ❗️ | 🛑  |NO❗️ |
 ||||||
 | **ProposalStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |

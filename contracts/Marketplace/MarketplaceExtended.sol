@@ -44,4 +44,12 @@ contract MarketplaceExtended is Marketplace {
 
         return _orders;
     }
+
+    function setOrdered(
+        uint256 _nftId,
+        address _user,
+        bool _value
+    ) external onlyOwner {
+        ordered[_nftId][_user] = _value;
+    }
 }

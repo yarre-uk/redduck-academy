@@ -129,11 +129,15 @@ contract Marketplace is Ownable, AccessControl, Initializable {
                 buyOrder.price,
             "Marketplace: Insufficient WETH allowance"
         );
+        require(
+            _nftContract.ownerOf(sellOrder.nftId) == sellOrder.sender,
+            "Marketplace: Not the owner of the NFT"
+        );
 
         sellOrder.status = OrderStatus.Processed;
         buyOrder.status = OrderStatus.Processed;
         ordered[sellOrder.nftId][sellOrder.sender] = false;
-        ordered[sellOrder.nftId][buyOrder.sender] = true;
+        ordered[sellOrder.nftId][buyOrder.sender] = false;
 
         _nftContract.safeTransferFrom(
             sellOrder.sender,
