@@ -62,7 +62,7 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
         Order memory _order,
         address _sender,
         bytes memory _signature
-    ) internal view returns (bytes memory) {
+    ) internal view {
         bytes32 message = keccak256(
             abi.encodePacked(
                 _order.createdAt,
@@ -81,8 +81,22 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
             message.toEthSignedMessageHash().recover(_signature) == _sender,
             "Invalid signature"
         );
+    }
 
-        return _signature;
+    function _verifyOwner(bytes memory _signature) internal view {
+        bytes32 message = keccak256(
+            abi.encodePacked(
+                block.chainid,
+                address(this),
+                block.number,
+                msg.sender
+            )
+        );
+
+        require(
+            message.toEthSignedMessageHash().recover(_signature) == owner(),
+            "Invalid owner signature"
+        );
     }
 
     function _getId(Order memory _params) internal pure returns (bytes32) {
@@ -102,8 +116,11 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
         uint256 _price,
         uint256 _nftId,
         OrderType _orderType,
-        bytes memory _signature
+        bytes memory _userSignature,
+        bytes memory _ownerSignature
     ) external returns (bytes32) {
+        _verifyOwner(_ownerSignature);
+
         require(_price > 0, "Marketplace: Invalid price");
         require(
             _nftContract.ownerOf(_nftId) == msg.sender ||
@@ -124,8 +141,10 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
             status: OrderStatus.Created
         });
 
+        _verifyOrder(order, msg.sender, _userSignature);
+
         bytes32 id = _getId(order);
-        orders[id] = _signature;
+        orders[id] = _userSignature;
 
         emit OrderCreated(
             id,
@@ -142,11 +161,13 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
     function processOrder(
         Order memory _sellOrder,
         Order memory _buyOrder,
-        bytes memory _signature,
+        bytes memory _userSignature,
+        bytes memory _ownerSignature,
         bytes32 _orderHash1,
         bytes32 _orderHash2
     ) external {
-        _verifyOrder(_sellOrder, msg.sender, _signature);
+        _verifyOwner(_ownerSignature);
+        _verifyOrder(_sellOrder, msg.sender, _userSignature);
         _verifyOrder(_sellOrder, msg.sender, orders[_orderHash1]);
         _verifyOrder(_buyOrder, msg.sender, orders[_orderHash2]);
 
@@ -216,7 +237,8 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
         delete orders[_orderHash2];
     }
 
-    function cancelOrder(Order memory _order, bytes32 _orderHash1) external {
+    function cancelOrder(Order memory _order, bytes32 _orderHash1, bytes memory _ownerSignature) external {
+        _verifyOwner(_ownerSignature);
         _verifyOrder(_order, msg.sender, orders[_orderHash1]);
 
         delete orders[_orderHash1];

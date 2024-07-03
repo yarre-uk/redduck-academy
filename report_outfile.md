@@ -142,6 +142,7 @@
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
 | └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
 | └ | _verifyOrder | Internal 🔒 |   | |
+| └ | _verifyOwner | Internal 🔒 |   | |
 | └ | _getId | Internal 🔒 |   | |
 | └ | createOrder | External ❗️ | 🛑  |NO❗️ |
 | └ | processOrder | External ❗️ | 🛑  |NO❗️ |
