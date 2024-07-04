@@ -12,15 +12,12 @@ import { MyERC721 } from "./MyERC721.sol";
 import { WETH } from "./WETH.sol";
 
 contract MarketplaceOff is Ownable, AccessControl, Initializable {
-    //! DON'T USE, this prop is required for the contract
-    //! to work properly as the implementation for the proxy
-    bytes internal _ordersState;
-
     MyERC721 internal _nftContract;
     WETH internal _wethContract;
 
     mapping(uint256 => mapping(address => bool)) public ordered;
-    mapping(bytes32 => bytes) public orders;
+    mapping(bytes32 => bytes) public signatures;
+    mapping(uint256 => bool) public nonces;
 
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
@@ -31,13 +28,14 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
         OrderType indexed orderType,
         uint256 price,
         uint256 nftId,
-        uint256 createdAt
+        uint256 createdAt,
+        bytes signature
     );
     event OrderProcessed(
-        bytes32 indexed id,
-        address indexed executer,
-        OrderStatus indexed state
+        bytes32 indexed sellOrderId,
+        bytes32 indexed buyOrderId
     );
+    event OrderCanceled(bytes32 indexed id, address indexed executer);
 
     constructor() Ownable(msg.sender) {}
 
@@ -58,11 +56,27 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
         _wethContract = _tokenWeth;
     }
 
+    function _getOrderId(Order memory _order) internal pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encodePacked(
+                    _order.sender,
+                    _order.nftId,
+                    _order.orderType,
+                    _order.price,
+                    _order.createdAt
+                )
+            );
+    }
+
     function _verifyOrder(
         Order memory _order,
         address _sender,
+        uint256 _nonce,
         bytes memory _signature
-    ) internal view {
+    ) internal {
+        require(nonces[_nonce] == false, "Marketplace: Invalid nonce");
+
         bytes32 message = keccak256(
             abi.encodePacked(
                 _order.createdAt,
@@ -71,8 +85,8 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
                 _order.price,
                 _order.sender,
                 _order.status,
-                block.number,
                 block.chainid,
+                _nonce,
                 address(this)
             )
         );
@@ -81,95 +95,61 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
             message.toEthSignedMessageHash().recover(_signature) == _sender,
             "Invalid signature"
         );
-    }
 
-    function _verifyOwner(bytes memory _signature) internal view {
-        bytes32 message = keccak256(
-            abi.encodePacked(
-                block.chainid,
-                address(this),
-                block.number,
-                msg.sender
-            )
-        );
-
-        require(
-            message.toEthSignedMessageHash().recover(_signature) == owner(),
-            "Invalid owner signature"
-        );
-    }
-
-    function _getId(Order memory _params) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    _params.sender,
-                    _params.price,
-                    _params.createdAt,
-                    _params.nftId,
-                    _params.orderType
-                )
-            );
+        nonces[_nonce] = true;
     }
 
     function createOrder(
-        uint256 _price,
-        uint256 _nftId,
-        OrderType _orderType,
-        bytes memory _userSignature,
-        bytes memory _ownerSignature
+        Order memory _order,
+        bytes memory _signature,
+        uint256 _nonce
     ) external returns (bytes32) {
-        _verifyOwner(_ownerSignature);
-
-        require(_price > 0, "Marketplace: Invalid price");
+        require(_order.price > 0, "Marketplace: Invalid price");
         require(
-            _nftContract.ownerOf(_nftId) == msg.sender ||
-                _orderType == OrderType.Buy,
+            _nftContract.ownerOf(_order.nftId) == msg.sender ||
+                _order.orderType == OrderType.Buy,
             "Marketplace: Not the owner of the NFT"
         );
         require(
-            ordered[_nftId][msg.sender] != true,
+            ordered[_order.nftId][msg.sender] != true,
             "Marketplace: NFT already ordered this way"
         );
 
-        Order memory order = Order({
-            sender: msg.sender,
-            price: _price,
-            createdAt: block.number,
-            nftId: _nftId,
-            orderType: _orderType,
-            status: OrderStatus.Created
-        });
+        _verifyOrder(_order, msg.sender, _nonce, _signature);
 
-        _verifyOrder(order, msg.sender, _userSignature);
+        bytes32 _id = _getOrderId(_order);
 
-        bytes32 id = _getId(order);
-        orders[id] = _userSignature;
+        signatures[_id] = _signature;
+        ordered[_order.nftId][msg.sender] = true;
 
         emit OrderCreated(
-            id,
+            _id,
             msg.sender,
-            _orderType,
-            _price,
-            _nftId,
-            block.number
+            _order.orderType,
+            _order.price,
+            _order.nftId,
+            block.number,
+            _signature
         );
 
-        return id;
+        return _id;
     }
 
     function processOrder(
         Order memory _sellOrder,
         Order memory _buyOrder,
-        bytes memory _userSignature,
-        bytes memory _ownerSignature,
-        bytes32 _orderHash1,
-        bytes32 _orderHash2
+        bytes32 _sellOrderId,
+        bytes32 _buyOrderId,
+        uint256 _nonce1,
+        uint256 _nonce2
     ) external {
-        _verifyOwner(_ownerSignature);
-        _verifyOrder(_sellOrder, msg.sender, _userSignature);
-        _verifyOrder(_sellOrder, msg.sender, orders[_orderHash1]);
-        _verifyOrder(_buyOrder, msg.sender, orders[_orderHash2]);
+        _verifyOrder(_sellOrder, msg.sender, _nonce1, signatures[_sellOrderId]);
+        _verifyOrder(
+            _buyOrder,
+            _buyOrder.sender,
+            _nonce2,
+            signatures[_buyOrderId]
+        );
 
         require(
             _sellOrder.sender == msg.sender,
@@ -222,25 +202,24 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
             _buyOrder.price
         );
 
-        emit OrderProcessed(
-            _getId(_sellOrder),
-            msg.sender,
-            OrderStatus.Processed
-        );
-        emit OrderProcessed(
-            _getId(_buyOrder),
-            msg.sender,
-            OrderStatus.Processed
-        );
+        emit OrderProcessed(_sellOrderId, _buyOrderId);
 
-        delete orders[_orderHash1];
-        delete orders[_orderHash2];
+        delete signatures[_sellOrderId];
+        delete signatures[_buyOrderId];
+        delete ordered[_sellOrder.nftId][_sellOrder.sender];
+        delete ordered[_sellOrder.nftId][_buyOrder.sender];
     }
 
-    function cancelOrder(Order memory _order, bytes32 _orderHash1, bytes memory _ownerSignature) external {
-        _verifyOwner(_ownerSignature);
-        _verifyOrder(_order, msg.sender, orders[_orderHash1]);
+    function cancelOrder(
+        Order memory _order,
+        bytes32 _id,
+        uint256 _nonce
+    ) external {
+        _verifyOrder(_order, msg.sender, _nonce, signatures[_id]);
 
-        delete orders[_orderHash1];
+        emit OrderCanceled(_id, msg.sender);
+
+        delete signatures[_id];
+        delete ordered[_order.nftId][msg.sender];
     }
 }

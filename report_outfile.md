@@ -131,19 +131,17 @@
 | └ | processOrder | External ❗️ | 🛑  |NO❗️ |
 | └ | cancelOrder | External ❗️ | 🛑  |NO❗️ |
 ||||||
-| **MarketplaceExtended** | Implementation | Marketplace |||
+| **MarketplaceExtended** | Implementation | MarketplaceOff |||
 | └ | setNFTContract | External ❗️ | 🛑  | onlyOwner |
 | └ | setWETHContract | External ❗️ | 🛑  | onlyOwner |
-| └ | getOrder | External ❗️ |   |NO❗️ |
-| └ | getOrders | External ❗️ |   |NO❗️ |
 | └ | setOrdered | External ❗️ | 🛑  | onlyOwner |
+| └ | setOrders | External ❗️ | 🛑  | onlyOwner |
 ||||||
 | **MarketplaceOff** | Implementation | Ownable, AccessControl, Initializable |||
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
 | └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
-| └ | _verifyOrder | Internal 🔒 |   | |
-| └ | _verifyOwner | Internal 🔒 |   | |
-| └ | _getId | Internal 🔒 |   | |
+| └ | _getOrderId | Internal 🔒 |   | |
+| └ | _verifyOrder | Internal 🔒 | 🛑  | |
 | └ | createOrder | External ❗️ | 🛑  |NO❗️ |
 | └ | processOrder | External ❗️ | 🛑  |NO❗️ |
 | └ | cancelOrder | External ❗️ | 🛑  |NO❗️ |
