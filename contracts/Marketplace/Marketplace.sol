@@ -172,4 +172,18 @@ contract Marketplace is Ownable, AccessControl, Initializable {
 
         emit OrderProcessed(_orderId, msg.sender, OrderStatus.Canceled);
     }
+
+    function getOrder (bytes32 _orderId) external view returns (Order memory) {
+        return _ordersState.getData(_orderId);
+    }
+
+    function getOrders(bytes32[] memory _orderIds) external view returns (Order[] memory) {
+        Order[] memory orders = new Order[](_orderIds.length);
+
+        for (uint256 i = 0; i < _orderIds.length; i++) {
+            orders[i] = _ordersState.getData(_orderIds[i]);
+        }
+
+        return orders;
+    }
 }

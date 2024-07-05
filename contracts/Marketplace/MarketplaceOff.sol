@@ -29,7 +29,8 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
         uint256 price,
         uint256 nftId,
         uint256 createdAt,
-        bytes signature
+        bytes signature,
+        uint256 nonce
     );
     event OrderProcessed(
         bytes32 indexed sellOrderId,
@@ -73,9 +74,13 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
         Order memory _order,
         address _sender,
         uint256 _nonce,
-        bytes memory _signature
+        bytes memory _signature,
+        bool _firstCheck
     ) internal {
-        require(nonces[_nonce] == false, "Marketplace: Invalid nonce");
+        if (_firstCheck) {
+            require(nonces[_nonce] == false, "Marketplace: Invalid nonce");
+            nonces[_nonce] = true;
+        }
 
         bytes32 message = keccak256(
             abi.encodePacked(
@@ -95,8 +100,6 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
             message.toEthSignedMessageHash().recover(_signature) == _sender,
             "Invalid signature"
         );
-
-        nonces[_nonce] = true;
     }
 
     function createOrder(
@@ -115,7 +118,7 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
             "Marketplace: NFT already ordered this way"
         );
 
-        _verifyOrder(_order, msg.sender, _nonce, _signature);
+        _verifyOrder(_order, msg.sender, _nonce, _signature, true);
 
         bytes32 _id = _getOrderId(_order);
 
@@ -128,8 +131,9 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
             _order.orderType,
             _order.price,
             _order.nftId,
-            block.number,
-            _signature
+            _order.createdAt,
+            _signature,
+            _nonce
         );
 
         return _id;
@@ -143,12 +147,19 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
         uint256 _nonce1,
         uint256 _nonce2
     ) external {
-        _verifyOrder(_sellOrder, msg.sender, _nonce1, signatures[_sellOrderId]);
+        _verifyOrder(
+            _sellOrder,
+            msg.sender,
+            _nonce1,
+            signatures[_sellOrderId],
+            false
+        );
         _verifyOrder(
             _buyOrder,
             _buyOrder.sender,
             _nonce2,
-            signatures[_buyOrderId]
+            signatures[_buyOrderId],
+            false
         );
 
         require(
@@ -215,7 +226,7 @@ contract MarketplaceOff is Ownable, AccessControl, Initializable {
         bytes32 _id,
         uint256 _nonce
     ) external {
-        _verifyOrder(_order, msg.sender, _nonce, signatures[_id]);
+        _verifyOrder(_order, msg.sender, _nonce, signatures[_id], false);
 
         emit OrderCanceled(_id, msg.sender);
 
