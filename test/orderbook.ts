@@ -37,7 +37,7 @@
 
 //     const weth = await new WETH__factory(owner).deploy();
 //     const nft = await new MyERC721__factory(owner).deploy();
-//     const marketplace = await new MarketplaceOff__factory(owner).deploy();
+//     const marketplace = await new Marketplace__factory(owner).deploy();
 
 //     await marketplace.initialize(
 //       await nft.getAddress(),

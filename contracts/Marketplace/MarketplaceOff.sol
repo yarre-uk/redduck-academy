@@ -7,9 +7,9 @@ import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable
 import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-import { OrderType, OrderStatus, Order } from "./MarketplaceStorage.sol";
-import { MyERC721 } from "./MyERC721.sol";
-import { WETH } from "./WETH.sol";
+import { OrderType, OrderStatus, Order } from "./utils/MarketplaceStorage.sol";
+import { MyERC721 } from "./utils/MyERC721.sol";
+import { WETH } from "../utils/WETH.sol";
 
 contract MarketplaceOff is Ownable, AccessControl, Initializable {
     MyERC721 internal _nftContract;

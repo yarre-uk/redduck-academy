@@ -18,13 +18,15 @@
 | contracts/Marketplace/Marketplace.sol | [object Promise] |
 | contracts/Marketplace/MarketplaceExtended.sol | [object Promise] |
 | contracts/Marketplace/MarketplaceOff.sol | [object Promise] |
-| contracts/Marketplace/MarketplaceStorage.sol | [object Promise] |
-| contracts/Marketplace/MyERC721.sol | [object Promise] |
-| contracts/Marketplace/WETH.sol | [object Promise] |
+| contracts/Orderbook/LinkedList.sol | [object Promise] |
+| contracts/Orderbook/MyERC1155.sol | [object Promise] |
+| contracts/Orderbook/Orderbook.sol | [object Promise] |
+| contracts/Orderbook/OrderbookStorage.sol | [object Promise] |
 | contracts/Raffle/DepositStorage.sol | [object Promise] |
 | contracts/Raffle/Raffle.sol | [object Promise] |
 | contracts/Raffle/RaffleExtended.sol | [object Promise] |
 | contracts/utils/MyProxy.sol | [object Promise] |
+| contracts/utils/WETH.sol | [object Promise] |
 
 
 ### Contracts Description Table
@@ -148,26 +150,31 @@
 | └ | processOrder | External ❗️ | 🛑  |NO❗️ |
 | └ | cancelOrder | External ❗️ | 🛑  |NO❗️ |
 ||||||
-| **ProposalStorage** | Library |  |||
-| └ | getId | Internal 🔒 |   | |
-| └ | isEmpty | Internal 🔒 |   | |
-| └ | addData | Internal 🔒 | 🛑  | |
-| └ | getData | Internal 🔒 |   | |
+| **VotingLinkedList** | Implementation |  |||
+| └ | getById | Public ❗️ |   |NO❗️ |
+| └ | isNotEmpty | Public ❗️ |   |NO❗️ |
+| └ | getHead | Public ❗️ |   |NO❗️ |
+| └ | getTail | Public ❗️ |   |NO❗️ |
+| └ | getId | Public ❗️ |   |NO❗️ |
+| └ | push | Public ❗️ | 🛑  |NO❗️ |
+| └ | pushStart | Public ❗️ | 🛑  |NO❗️ |
+| └ | insert | Public ❗️ | 🛑  |NO❗️ |
+| └ | deleteNode | Public ❗️ | 🛑  |NO❗️ |
+| └ | clear | Public ❗️ | 🛑  |NO❗️ |
+| └ | traverse | Public ❗️ |   |NO❗️ |
 ||||||
-| **MyERC721** | Implementation | ERC721URIStorage, Ownable |||
-| └ | <Constructor> | Public ❗️ | 🛑  | ERC721 Ownable |
-| └ | createNFT | Public ❗️ | 🛑  |NO❗️ |
-| └ | burnNFT | Public ❗️ | 🛑  |NO❗️ |
-||||||
-| **WETH** | Implementation |  |||
-| └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
-| └ | deposit | Public ❗️ |  💵 |NO❗️ |
+| **MyERC1155** | Implementation | ERC1155, Ownable |||
+| └ | <Constructor> | Public ❗️ | 🛑  | ERC1155 Ownable |
+| └ | setURI | Public ❗️ | 🛑  | onlyOwner |
 | └ | mint | Public ❗️ | 🛑  |NO❗️ |
-| └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
-| └ | totalSupply | Public ❗️ |   |NO❗️ |
-| └ | approve | Public ❗️ | 🛑  |NO❗️ |
-| └ | transfer | Public ❗️ | 🛑  |NO❗️ |
-| └ | transferFrom | Public ❗️ | 🛑  |NO❗️ |
+| └ | mintBatch | Public ❗️ | 🛑  | onlyOwner |
+||||||
+| **Orderbook** | Implementation | Ownable, AccessControl, Initializable |||
+| └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
+| └ | setAllowedTokensForTrade | External ❗️ | 🛑  | onlyOwner |
+||||||
+| **OrderbookStorage** | Library |  |||
 ||||||
 | **DepositStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |
@@ -210,6 +217,16 @@
 | └ | getImplementation | External ❗️ |   |NO❗️ |
 | └ | _implementation | Internal 🔒 |   | |
 | └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
+||||||
+| **WETH** | Implementation |  |||
+| └ | <Receive Ether> | External ❗️ |  💵 |NO❗️ |
+| └ | deposit | Public ❗️ |  💵 |NO❗️ |
+| └ | mint | Public ❗️ | 🛑  |NO❗️ |
+| └ | withdraw | Public ❗️ | 🛑  |NO❗️ |
+| └ | totalSupply | Public ❗️ |   |NO❗️ |
+| └ | approve | Public ❗️ | 🛑  |NO❗️ |
+| └ | transfer | Public ❗️ | 🛑  |NO❗️ |
+| └ | transferFrom | Public ❗️ | 🛑  |NO❗️ |
 
 
 ### Legend

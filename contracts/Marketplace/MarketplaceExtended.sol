@@ -2,8 +2,8 @@
 pragma solidity 0.8.24;
 
 import { MarketplaceOff } from "./MarketplaceOff.sol";
-import { MyERC721 } from "./MyERC721.sol";
-import { WETH } from "./WETH.sol";
+import { MyERC721 } from "./utils/MyERC721.sol";
+import { WETH } from "../utils/WETH.sol";
 
 contract MarketplaceExtended is MarketplaceOff {
     function setNFTContract(MyERC721 _tokenNft) external onlyOwner {

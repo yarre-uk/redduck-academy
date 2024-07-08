@@ -3,18 +3,18 @@
   "rules": {
     "no-unused-vars": "error",
     "compiler-version": ["error", "^0.8.0"],
-    "const-name-snakecase": "error",
+    "const-name-snakecase": "warn",
     "contract-name-camelcase": "error",
     "event-name-camelcase": "error",
     "func-name-mixedcase": "error",
     "func-visibility": ["warn", { "ignoreConstructors": true }],
     "func-param-name-mixedcase": "error",
     "modifier-name-mixedcase": "error",
-    "private-vars-leading-underscore": "error",
     "var-name-mixedcase": "error",
     "imports-on-top": "error",
     "no-console": "warn",
     "custom-errors": "none",
-    "reason-string": 60
+    "reason-string": 60,
+    "private-vars-leading-underscore": "none"
   }
 }

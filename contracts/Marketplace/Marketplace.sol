@@ -5,9 +5,9 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import { OrderType, OrderStatus, MarketplaceStorageState, Order, ProposalStorage } from "./MarketplaceStorage.sol";
-import { MyERC721 } from "./MyERC721.sol";
-import { WETH } from "./WETH.sol";
+import { OrderType, OrderStatus, MarketplaceStorageState, Order, ProposalStorage } from "./utils/MarketplaceStorage.sol";
+import { MyERC721 } from "./utils/MyERC721.sol";
+import { WETH } from "../utils/WETH.sol";
 
 contract Marketplace is Ownable, AccessControl, Initializable {
     MarketplaceStorageState internal _ordersState;
@@ -173,11 +173,13 @@ contract Marketplace is Ownable, AccessControl, Initializable {
         emit OrderProcessed(_orderId, msg.sender, OrderStatus.Canceled);
     }
 
-    function getOrder (bytes32 _orderId) external view returns (Order memory) {
+    function getOrder(bytes32 _orderId) external view returns (Order memory) {
         return _ordersState.getData(_orderId);
     }
 
-    function getOrders(bytes32[] memory _orderIds) external view returns (Order[] memory) {
+    function getOrders(
+        bytes32[] memory _orderIds
+    ) external view returns (Order[] memory) {
         Order[] memory orders = new Order[](_orderIds.length);
 
         for (uint256 i = 0; i < _orderIds.length; i++) {
