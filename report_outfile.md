@@ -171,7 +171,8 @@
 | **Orderbook** | Implementation | Ownable, AccessControl, Initializable |||
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
 | └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
-| └ | setAllowedTokensForTrade | External ❗️ | 🛑  | onlyOwner |
+| └ | manageTokensForTrade | External ❗️ | 🛑  | onlyOwner |
+| └ | createPassiveOrder | External ❗️ | 🛑  | validateOrder |
 ||||||
 | **DepositStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |

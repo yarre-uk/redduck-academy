@@ -7,17 +7,24 @@ import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable
 
 import { WETH } from "../utils/WETH.sol";
 import { MyERC1155 } from "./MyERC1155.sol";
+import { OrderbookLists, ListData } from "./OrderbookStorage.sol";
+import { LinkedListState, LinkedListLibrary, OrderData } from "./LinkedList.sol";
 
 contract Orderbook is Ownable, AccessControl, Initializable {
+    OrderbookLists internal _orderbookLists;
+
     MyERC1155 public ercContract;
     WETH public wethContract;
-    uint256[] public allowedTokensForTrade;
+    mapping(uint256 => bool) public allowedTokensForTrade;
+
+    using LinkedListLibrary for LinkedListState;
 
     constructor() Ownable(msg.sender) {}
 
     function initialize(
         MyERC1155 _erc1155,
-        WETH _weth
+        WETH _weth,
+        uint256[] memory _tokens
     ) public virtual initializer onlyOwner {
         require(
             address(_erc1155) != address(0),
@@ -30,11 +37,75 @@ contract Orderbook is Ownable, AccessControl, Initializable {
 
         ercContract = _erc1155;
         wethContract = _weth;
+
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            allowedTokensForTrade[_tokens[i]] = true;
+        }
     }
 
-    function setAllowedTokensForTrade(
-        uint256[] memory _tokens
+    modifier validateOrder(
+        uint256 _tokenId,
+        uint256 _price,
+        uint256 _amount
+    ) {
+        require(
+            ercContract.balanceOf(msg.sender, _tokenId) >= _amount,
+            "Orderbook: Insufficient balance"
+        );
+        require(
+            ercContract.isApprovedForAll(msg.sender, address(this)),
+            "Orderbook: Not approved"
+        );
+        require(_price > 0, "Orderbook: Price should be greater than 0");
+        require(_amount > 0, "Orderbook: Amount should be greater than 0");
+        _;
+    }
+
+    function manageTokensForTrade(
+        uint256[] memory forRemoval,
+        uint256[] memory forAddition
     ) external onlyOwner {
-        allowedTokensForTrade = _tokens;
+        if (forRemoval.length > 0) {
+            for (uint256 i = 0; i < forRemoval.length; i++) {
+                allowedTokensForTrade[forRemoval[i]] = false;
+            }
+        }
+
+        if (forAddition.length > 0) {
+            for (uint256 i = 0; i < forAddition.length; i++) {
+                allowedTokensForTrade[forAddition[i]] = true;
+            }
+        }
+    }
+
+    function createPassiveOrder(
+        uint256 _tokenId,
+        uint256 _price,
+        uint256 _amount,
+        bool _isBuyOrder,
+        bytes32 _insertPosition
+    ) external validateOrder(_tokenId, _price, _amount) {
+        require(
+            ercContract.balanceOf(msg.sender, _tokenId) >= _amount,
+            "Orderbook: Insufficient balance"
+        );
+        require(
+            ercContract.isApprovedForAll(msg.sender, address(this)),
+            "Orderbook: Not approved"
+        );
+        ListData storage lists = _orderbookLists.lists[_tokenId];
+
+        LinkedListState storage list = _isBuyOrder
+            ? lists.buyLinkedList
+            : lists.sellLinkedList;
+
+        OrderData memory order = OrderData({
+            price: _price,
+            amount: _amount,
+            owner: msg.sender,
+            createdAt: block.timestamp
+        });
+
+        list.insert(_insertPosition, order);
     }
 }

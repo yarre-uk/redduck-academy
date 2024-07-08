@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-struct Data {
-    uint256 price;
+struct OrderData {
+    uint256 price; // 1:1
     uint256 amount;
+    address owner;
+    uint256 createdAt;
 }
 
 struct Node {
     bytes32 previous;
-    Data data;
+    OrderData data;
     bytes32 next;
 }
 
@@ -25,7 +27,7 @@ library LinkedListLibrary {
     function getById(
         LinkedListState storage _state,
         bytes32 _id
-    ) public view returns (Data memory) {
+    ) public view returns (OrderData memory) {
         return _state.objects[_id].data;
     }
 
@@ -48,25 +50,27 @@ library LinkedListLibrary {
         return _state.tail;
     }
 
-    function getId(
-        uint256 _votingId,
-        uint256 _price
-    ) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_votingId, _price));
+    function getId(OrderData memory _data) public pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    _data.price,
+                    _data.amount,
+                    _data.owner,
+                    _data.createdAt
+                )
+            );
     }
 
     function push(
         LinkedListState storage _state,
-        uint256 _votingId,
-        uint256 _price,
-        uint256 _amount
+        OrderData memory _data
     ) public {
-        bytes32 id = getId(_votingId, _price);
-        Data memory newData = Data(_price, _amount);
-        Node memory newObject = Node(_state.tail, newData, bytes32(0));
+        bytes32 id = getId(_data);
+        Node memory newObject = Node(_state.tail, _data, bytes32(0));
 
         require(
-            _amount > getById(_state, _state.tail).amount,
+            _data.amount > getById(_state, _state.tail).amount,
             "Amount must be greater than the previous node's amount"
         );
 
@@ -83,18 +87,13 @@ library LinkedListLibrary {
 
     function pushStart(
         LinkedListState storage _state,
-        uint256 _votingId,
-        uint256 _price,
-        uint256 amount
+        OrderData memory _data
     ) public {
-        bytes32 id = getId(_votingId, _price);
-        Data memory newData = Data(_price, amount);
-        Node memory newObject = Node(bytes32(0), newData, _state.head);
-
-        // console.log(amount, getById(head).amount);
+        bytes32 id = getId(_data);
+        Node memory newObject = Node(bytes32(0), _data, _state.head);
 
         require(
-            amount < getById(_state, _state.head).amount,
+            _data.amount < getById(_state, _state.head).amount,
             "Amount must be less than the head's amount"
         );
 
@@ -111,35 +110,32 @@ library LinkedListLibrary {
 
     function insert(
         LinkedListState storage _state,
-        uint256 _votingId,
         bytes32 _prevId,
-        uint256 _price,
-        uint256 _amount
+        OrderData memory _data
     ) public {
         require(_state.head != bytes32(0), "List is empty");
 
         if (_prevId == bytes32(0)) {
-            pushStart(_state, _votingId, _price, _amount);
+            pushStart(_state, _data);
             return;
         }
 
         require(
-            _amount > _state.objects[_prevId].data.amount ||
+            _data.amount > _state.objects[_prevId].data.amount ||
                 _state.objects[_prevId].previous == bytes32(0),
             "Amount must be greater than the previous node's amount"
         );
         require(
-            _amount <
+            _data.amount <
                 _state.objects[_state.objects[_prevId].next].data.amount ||
                 _state.objects[_prevId].next == bytes32(0),
             "Amount must be less than the next node's amount"
         );
 
-        bytes32 id = getId(_votingId, _price);
-        Data memory newData = Data(_price, _amount);
+        bytes32 id = getId(_data);
         Node memory newObject = Node(
             _prevId,
-            newData,
+            _data,
             _state.objects[_prevId].next
         );
 
@@ -158,26 +154,26 @@ library LinkedListLibrary {
         _state.length++;
     }
 
-    function deleteNode(LinkedListState storage _state, bytes32 id) public {
+    function deleteNode(LinkedListState storage _state, bytes32 _id) public {
         require(_state.head != bytes32(0), "List is empty");
 
-        if (_state.objects[id].previous == bytes32(0)) {
-            _state.head = _state.objects[id].next;
+        if (_state.objects[_id].previous == bytes32(0)) {
+            _state.head = _state.objects[_id].next;
         } else {
-            _state.objects[_state.objects[id].previous].next = _state
-                .objects[id]
+            _state.objects[_state.objects[_id].previous].next = _state
+                .objects[_id]
                 .next;
         }
 
-        if (_state.objects[id].next == bytes32(0)) {
-            _state.tail = _state.objects[id].previous;
+        if (_state.objects[_id].next == bytes32(0)) {
+            _state.tail = _state.objects[_id].previous;
         } else {
-            _state.objects[_state.objects[id].next].previous = _state
-                .objects[id]
+            _state.objects[_state.objects[_id].next].previous = _state
+                .objects[_id]
                 .previous;
         }
 
-        delete _state.objects[id];
+        delete _state.objects[_id];
         _state.length--;
     }
 
