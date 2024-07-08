@@ -19,6 +19,21 @@ contract Orderbook is Ownable, AccessControl, Initializable {
 
     using LinkedListLibrary for LinkedListState;
 
+    enum OrderType {
+        BUY,
+        SELL
+    }
+
+    event OrderCreated(
+        bytes32 indexed id,
+        address indexed sender,
+        uint256 indexed tokenId,
+        uint256 price,
+        uint256 amount,
+        uint256 createdAt,
+        OrderType orderType
+    );
+
     constructor() Ownable(msg.sender) {}
 
     function initialize(
@@ -82,9 +97,9 @@ contract Orderbook is Ownable, AccessControl, Initializable {
         uint256 _tokenId,
         uint256 _price,
         uint256 _amount,
-        bool _isBuyOrder,
+        OrderType _orderType,
         bytes32 _insertPosition
-    ) external validateOrder(_tokenId, _price, _amount) {
+    ) external validateOrder(_tokenId, _price, _amount) returns (bytes32 id) {
         require(
             ercContract.balanceOf(msg.sender, _tokenId) >= _amount,
             "Orderbook: Insufficient balance"
@@ -95,7 +110,7 @@ contract Orderbook is Ownable, AccessControl, Initializable {
         );
         ListData storage lists = _orderbookLists.lists[_tokenId];
 
-        LinkedListState storage list = _isBuyOrder
+        LinkedListState storage list = _orderType == OrderType.BUY
             ? lists.buyLinkedList
             : lists.sellLinkedList;
 
@@ -106,6 +121,16 @@ contract Orderbook is Ownable, AccessControl, Initializable {
             createdAt: block.timestamp
         });
 
-        list.insert(_insertPosition, order);
+        id = list.insert(_insertPosition, order);
+
+        emit OrderCreated(
+            id,
+            msg.sender,
+            _tokenId,
+            _price,
+            _amount,
+            block.timestamp,
+            _orderType
+        );
     }
 }

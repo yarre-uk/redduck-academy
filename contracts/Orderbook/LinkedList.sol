@@ -65,8 +65,8 @@ library LinkedListLibrary {
     function push(
         LinkedListState storage _state,
         OrderData memory _data
-    ) public {
-        bytes32 id = getId(_data);
+    ) public returns (bytes32 id) {
+        id = getId(_data);
         Node memory newObject = Node(_state.tail, _data, bytes32(0));
 
         require(
@@ -88,8 +88,8 @@ library LinkedListLibrary {
     function pushStart(
         LinkedListState storage _state,
         OrderData memory _data
-    ) public {
-        bytes32 id = getId(_data);
+    ) public returns (bytes32 id) {
+        id = getId(_data);
         Node memory newObject = Node(bytes32(0), _data, _state.head);
 
         require(
@@ -112,27 +112,27 @@ library LinkedListLibrary {
         LinkedListState storage _state,
         bytes32 _prevId,
         OrderData memory _data
-    ) public {
+    ) public returns (bytes32 id) {
         require(_state.head != bytes32(0), "List is empty");
 
         if (_prevId == bytes32(0)) {
-            pushStart(_state, _data);
-            return;
+            return pushStart(_state, _data);
+        }
+
+        if (_prevId == _state.tail) {
+            return push(_state, _data);
         }
 
         require(
-            _data.amount > _state.objects[_prevId].data.amount ||
-                _state.objects[_prevId].previous == bytes32(0),
+            _data.amount > getById(_state, _prevId).amount,
             "Amount must be greater than the previous node's amount"
         );
         require(
-            _data.amount <
-                _state.objects[_state.objects[_prevId].next].data.amount ||
-                _state.objects[_prevId].next == bytes32(0),
+            _data.amount < getById(_state, _state.objects[_prevId].next).amount,
             "Amount must be less than the next node's amount"
         );
 
-        bytes32 id = getId(_data);
+        id = getId(_data);
         Node memory newObject = Node(
             _prevId,
             _data,
