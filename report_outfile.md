@@ -150,7 +150,7 @@
 | └ | processOrder | External ❗️ | 🛑  |NO❗️ |
 | └ | cancelOrder | External ❗️ | 🛑  |NO❗️ |
 ||||||
-| **VotingLinkedList** | Implementation |  |||
+| **LinkedListLibrary** | Library |  |||
 | └ | getById | Public ❗️ |   |NO❗️ |
 | └ | isNotEmpty | Public ❗️ |   |NO❗️ |
 | └ | getHead | Public ❗️ |   |NO❗️ |
@@ -161,7 +161,6 @@
 | └ | insert | Public ❗️ | 🛑  |NO❗️ |
 | └ | deleteNode | Public ❗️ | 🛑  |NO❗️ |
 | └ | clear | Public ❗️ | 🛑  |NO❗️ |
-| └ | traverse | Public ❗️ |   |NO❗️ |
 ||||||
 | **MyERC1155** | Implementation | ERC1155, Ownable |||
 | └ | <Constructor> | Public ❗️ | 🛑  | ERC1155 Ownable |
@@ -173,8 +172,6 @@
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
 | └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
 | └ | setAllowedTokensForTrade | External ❗️ | 🛑  | onlyOwner |
-||||||
-| **OrderbookStorage** | Library |  |||
 ||||||
 | **DepositStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |
