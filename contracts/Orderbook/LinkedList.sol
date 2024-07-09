@@ -27,48 +27,48 @@ library LinkedListLibrary {
     function getById(
         LinkedListState storage _state,
         bytes32 _id
-    ) public view returns (OrderData storage) {
+    ) internal view returns (OrderData storage) {
         return _state.objects[_id].data;
     }
 
     function isNotEmpty(
         LinkedListState storage _state,
         bytes32 id
-    ) public view returns (bool) {
+    ) internal view returns (bool) {
         return _state.objects[id].data.price != 0;
     }
 
     function getHeadId(
         LinkedListState storage _state
-    ) public view returns (bytes32) {
+    ) internal view returns (bytes32) {
         return _state.head;
     }
 
     function getTailId(
         LinkedListState storage _state
-    ) public view returns (bytes32) {
+    ) internal view returns (bytes32) {
         return _state.tail;
     }
 
     function getLength(
         LinkedListState storage _state
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
         return _state.length;
     }
 
     function getHead(
         LinkedListState storage _state
-    ) public view returns (OrderData storage) {
+    ) internal view returns (OrderData storage) {
         return getById(_state, _state.head);
     }
 
     function getTail(
         LinkedListState storage _state
-    ) public view returns (OrderData storage) {
+    ) internal view returns (OrderData storage) {
         return getById(_state, _state.tail);
     }
 
-    function getId(OrderData memory _data) public pure returns (bytes32) {
+    function getId(OrderData memory _data) internal pure returns (bytes32) {
         return
             keccak256(
                 abi.encode(
@@ -83,7 +83,7 @@ library LinkedListLibrary {
     function push(
         LinkedListState storage _state,
         OrderData memory _data
-    ) public returns (bytes32 id) {
+    ) internal returns (bytes32 id) {
         id = getId(_data);
         Node memory newObject = Node(_state.tail, _data, bytes32(0));
 
@@ -106,7 +106,7 @@ library LinkedListLibrary {
     function pushStart(
         LinkedListState storage _state,
         OrderData memory _data
-    ) public returns (bytes32 id) {
+    ) internal returns (bytes32 id) {
         id = getId(_data);
         Node memory newObject = Node(bytes32(0), _data, _state.head);
 
@@ -130,7 +130,7 @@ library LinkedListLibrary {
         LinkedListState storage _state,
         bytes32 _prevId,
         OrderData memory _data
-    ) public returns (bytes32 id) {
+    ) internal returns (bytes32 id) {
         require(_state.head != bytes32(0), "List is empty");
 
         if (_prevId == bytes32(0)) {
@@ -172,7 +172,7 @@ library LinkedListLibrary {
         _state.length++;
     }
 
-    function deleteNode(LinkedListState storage _state, bytes32 _id) public {
+    function deleteNode(LinkedListState storage _state, bytes32 _id) internal {
         require(_state.head != bytes32(0), "List is empty");
 
         if (_state.objects[_id].previous == bytes32(0)) {
@@ -195,7 +195,7 @@ library LinkedListLibrary {
         _state.length--;
     }
 
-    function clear(LinkedListState storage _state) public {
+    function clear(LinkedListState storage _state) internal {
         _state.head = bytes32(0);
         _state.tail = bytes32(0);
         delete _state.objects[bytes32(0)];

@@ -151,19 +151,19 @@
 | └ | cancelOrder | External ❗️ | 🛑  |NO❗️ |
 ||||||
 | **LinkedListLibrary** | Library |  |||
-| └ | getById | Public ❗️ |   |NO❗️ |
-| └ | isNotEmpty | Public ❗️ |   |NO❗️ |
-| └ | getHeadId | Public ❗️ |   |NO❗️ |
-| └ | getTailId | Public ❗️ |   |NO❗️ |
-| └ | getLength | Public ❗️ |   |NO❗️ |
-| └ | getHead | Public ❗️ |   |NO❗️ |
-| └ | getTail | Public ❗️ |   |NO❗️ |
-| └ | getId | Public ❗️ |   |NO❗️ |
-| └ | push | Public ❗️ | 🛑  |NO❗️ |
-| └ | pushStart | Public ❗️ | 🛑  |NO❗️ |
-| └ | insert | Public ❗️ | 🛑  |NO❗️ |
-| └ | deleteNode | Public ❗️ | 🛑  |NO❗️ |
-| └ | clear | Public ❗️ | 🛑  |NO❗️ |
+| └ | getById | Internal 🔒 |   | |
+| └ | isNotEmpty | Internal 🔒 |   | |
+| └ | getHeadId | Internal 🔒 |   | |
+| └ | getTailId | Internal 🔒 |   | |
+| └ | getLength | Internal 🔒 |   | |
+| └ | getHead | Internal 🔒 |   | |
+| └ | getTail | Internal 🔒 |   | |
+| └ | getId | Internal 🔒 |   | |
+| └ | push | Internal 🔒 | 🛑  | |
+| └ | pushStart | Internal 🔒 | 🛑  | |
+| └ | insert | Internal 🔒 | 🛑  | |
+| └ | deleteNode | Internal 🔒 | 🛑  | |
+| └ | clear | Internal 🔒 | 🛑  | |
 ||||||
 | **MyERC1155** | Implementation | ERC1155, Ownable |||
 | └ | <Constructor> | Public ❗️ | 🛑  | ERC1155 Ownable |
