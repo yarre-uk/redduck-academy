@@ -175,6 +175,9 @@
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
 | └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
 | └ | manageTokensForTrade | External ❗️ | 🛑  | onlyOwner |
+| └ | getOrder | External ❗️ |   |NO❗️ |
+| └ | deposit | External ❗️ |  💵 |NO❗️ |
+| └ | withdraw | External ❗️ | 🛑  |NO❗️ |
 | └ | createPassiveOrder | External ❗️ |  💵 | validateOrder |
 | └ | matchOrder | Public ❗️ | 🛑  |NO❗️ |
 | └ | _processBuyOrder | Internal 🔒 | 🛑  | |

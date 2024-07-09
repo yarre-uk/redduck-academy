@@ -15,6 +15,9 @@ enum OrderType {
   BUY,
 }
 
+const TOKEN_ID = 0n;
+const EMPTY_BYTES = "0x" + "0".repeat(64);
+
 describe("Orderbook", () => {
   type Contracts = {
     ecrContract: MyERC1155;
@@ -27,24 +30,24 @@ describe("Orderbook", () => {
     [K in keyof Contracts]: Record<string, Contracts[K]>;
   };
 
-  const deploy = async (): Promise<{
-    contracts: Contracts;
-    users: Users;
-    signers: Signers;
-  }> => {
+  const deploy = async () => {
     const [owner, user1, user2, user3, user4] = await ethers.getSigners();
 
     const ecrContract = await new MyERC1155__factory(owner).deploy();
     const orderbook = await new Orderbook__factory(owner).deploy();
 
-    await ecrContract.mint(user1.address, 0n, ethers.parseEther("1"), "0x");
-    await ecrContract.mint(user2.address, 0n, ethers.parseEther("1"), "0x");
-    await ecrContract.mint(user3.address, 0n, ethers.parseEther("1"), "0x");
-    await ecrContract.mint(user4.address, 0n, ethers.parseEther("1"), "0x");
+    await Promise.all([
+      ecrContract.mint(user1.address, 0n, ethers.parseEther("1"), EMPTY_BYTES),
+      ecrContract.mint(user2.address, 0n, ethers.parseEther("1"), EMPTY_BYTES),
+      ecrContract.mint(user3.address, 0n, ethers.parseEther("1"), EMPTY_BYTES),
+      ecrContract.mint(user4.address, 0n, ethers.parseEther("1"), EMPTY_BYTES),
+    ]);
+
+    await orderbook.initialize(await ecrContract.getAddress(), [TOKEN_ID]);
 
     return {
-      contracts: { ecrContract, orderbook },
-      users: { owner, user1, user2, user3, user4 },
+      contracts: { ecrContract, orderbook } satisfies Contracts,
+      users: { owner, user1, user2, user3, user4 } satisfies Users,
       signers: {
         ecrContract: {
           user1EcrContract: ecrContract.connect(user1),
@@ -58,7 +61,7 @@ describe("Orderbook", () => {
           user3Orderbook: orderbook.connect(user3),
           user4Orderbook: orderbook.connect(user4),
         },
-      },
+      } satisfies Signers,
     };
   };
 
@@ -89,5 +92,77 @@ describe("Orderbook", () => {
     });
   });
 
-  describe("Orderbook", () => {});
+  describe("Orderbook", () => {
+    it("Should add buy order", async () => {
+      const {
+        contracts: { orderbook },
+        signers: {
+          orderbook: { user1Orderbook },
+        },
+      } = fixture;
+
+      const price = 1000n;
+      const amount = 100n;
+
+      const id = await user1Orderbook.createPassiveOrder.staticCall(
+        TOKEN_ID,
+        price,
+        amount,
+        OrderType.BUY,
+        EMPTY_BYTES,
+        { value: price * amount },
+      );
+
+      await user1Orderbook.createPassiveOrder(
+        TOKEN_ID,
+        price,
+        amount,
+        OrderType.BUY,
+        EMPTY_BYTES,
+        { value: price * amount },
+      );
+
+      expect(
+        (await orderbook.getOrder(TOKEN_ID, OrderType.BUY, id))[0],
+      ).to.be.equal(price);
+    });
+
+    it("Should add sell order", async () => {
+      const {
+        contracts: { orderbook },
+        signers: {
+          orderbook: { user1Orderbook },
+          ecrContract: { user1EcrContract },
+        },
+      } = fixture;
+
+      const price = 1000n;
+      const amount = 100n;
+
+      await user1EcrContract.setApprovalForAll(
+        await orderbook.getAddress(),
+        true,
+      );
+
+      const id = await user1Orderbook.createPassiveOrder.staticCall(
+        TOKEN_ID,
+        price,
+        amount,
+        OrderType.SELL,
+        EMPTY_BYTES,
+      );
+
+      await user1Orderbook.createPassiveOrder(
+        TOKEN_ID,
+        price,
+        amount,
+        OrderType.SELL,
+        EMPTY_BYTES,
+      );
+
+      expect(
+        (await orderbook.getOrder(TOKEN_ID, OrderType.SELL, id))[0],
+      ).to.be.equal(price);
+    });
+  });
 });

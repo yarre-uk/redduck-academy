@@ -5,10 +5,11 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import { WETH } from "../utils/WETH.sol";
 import { MyERC1155 } from "./MyERC1155.sol";
 import { OrderbookLists, ListData } from "./OrderbookStorage.sol";
 import { LinkedListState, LinkedListLibrary, OrderData } from "./LinkedList.sol";
+
+import "hardhat/console.sol";
 
 contract Orderbook is Ownable, AccessControl, Initializable {
     OrderbookLists internal _orderbookLists;
@@ -57,12 +58,14 @@ contract Orderbook is Ownable, AccessControl, Initializable {
         uint256 _price,
         uint256 _amount
     ) {
+        console.log("Orderbook: validateOrder start");
         require(
             allowedTokensForTrade[_tokenId],
             "Orderbook: Token not allowed for trade"
         );
         require(_price > 0, "Orderbook: Price should be greater than 0");
         require(_amount > 0, "Orderbook: Amount should be greater than 0");
+        console.log("Orderbook: validateOrder end");
         _;
     }
 
@@ -83,6 +86,35 @@ contract Orderbook is Ownable, AccessControl, Initializable {
         }
     }
 
+    function getOrder(
+        uint256 _tokenId,
+        OrderType _orderType,
+        bytes32 _id
+    ) external view returns (OrderData memory) {
+        ListData storage lists = _orderbookLists.lists[_tokenId];
+
+        LinkedListState storage list = _orderType == OrderType.BUY
+            ? lists.buyLinkedList
+            : lists.sellLinkedList;
+
+        return list.getById(_id);
+    }
+
+    function deposit() external payable {
+        require(msg.value > 0, "Orderbook: Amount should be greater than 0");
+        balances[msg.sender] += msg.value;
+    }
+
+    function withdraw(uint256 _amount) external {
+        require(
+            balances[msg.sender] >= _amount,
+            "Orderbook: Insufficient balance"
+        );
+        balances[msg.sender] -= _amount;
+        (bool success, ) = payable(msg.sender).call{ value: _amount }("");
+        require(success, "Orderbook: Transfer failed");
+    }
+
     function createPassiveOrder(
         uint256 _tokenId,
         uint256 _price,
@@ -93,23 +125,27 @@ contract Orderbook is Ownable, AccessControl, Initializable {
         external
         payable
         validateOrder(_tokenId, _price, _amount)
-        returns (bytes32 id)
+        returns (bytes32)
     {
+        console.log("Orderbook: createPassiveOrder start");
+        bool isBuy = _orderType == OrderType.BUY;
         require(
-            _orderType == OrderType.BUY || _price == msg.value,
+            isBuy || _price * _amount == msg.value,
             "Orderbook: Price should be equal to msg.value if you are buying"
         );
         require(
-            ercContract.balanceOf(msg.sender, _tokenId) >= _amount,
+            !isBuy || ercContract.balanceOf(msg.sender, _tokenId) >= _amount,
             "Orderbook: Insufficient balance"
         );
         require(
-            ercContract.isApprovedForAll(msg.sender, address(this)),
+            !isBuy || ercContract.isApprovedForAll(msg.sender, address(this)),
             "Orderbook: Not approved"
         );
+        console.log("Orderbook: createPassiveOrder require passed");
+
         ListData storage lists = _orderbookLists.lists[_tokenId];
 
-        LinkedListState storage list = _orderType == OrderType.BUY
+        LinkedListState storage list = isBuy
             ? lists.buyLinkedList
             : lists.sellLinkedList;
 
@@ -120,11 +156,23 @@ contract Orderbook is Ownable, AccessControl, Initializable {
             createdAt: block.timestamp
         });
 
-        if (_orderType == OrderType.BUY) {
+        if (isBuy) {
             balances[msg.sender] += _price;
         }
 
-        id = list.insert(_insertPosition, order);
+        console.log("Orderbook: createPassiveOrder before insert");
+
+        bytes32 id = list.insert(_insertPosition, order);
+
+        //! some random error
+        /*CompilerError: Stack too deep. Try compiling with `--via-ir` (cli) or the equivalent `viaIR: true` (standard JSON) while enabling the optimizer. Otherwise, try removing local variables.
+           --> contracts/Orderbook/Orderbook.sol:167:13:
+            |
+        167 |             _price,
+            |             ^^^^^^
+
+
+        Error HH600: Compilation failed*/
 
         emit OrderCreated(
             id,
@@ -135,6 +183,10 @@ contract Orderbook is Ownable, AccessControl, Initializable {
             block.timestamp,
             _orderType
         );
+
+        console.log("Orderbook: createPassiveOrder end");
+
+        return id;
     }
 
     function matchOrder(

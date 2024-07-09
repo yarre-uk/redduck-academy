@@ -69,15 +69,7 @@ library LinkedListLibrary {
     }
 
     function getId(OrderData memory _data) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    _data.price,
-                    _data.amount,
-                    _data.owner,
-                    _data.createdAt
-                )
-            );
+        return keccak256(abi.encode(_data.price, _data.amount, _data.owner));
     }
 
     function push(
@@ -111,7 +103,8 @@ library LinkedListLibrary {
         Node memory newObject = Node(bytes32(0), _data, _state.head);
 
         require(
-            _data.amount < getById(_state, _state.head).amount,
+            _state.tail == bytes32(0) ||
+                _data.amount < getById(_state, _state.head).amount,
             "Amount must be less than the head's amount"
         );
 
@@ -131,8 +124,6 @@ library LinkedListLibrary {
         bytes32 _prevId,
         OrderData memory _data
     ) internal returns (bytes32 id) {
-        require(_state.head != bytes32(0), "List is empty");
-
         if (_prevId == bytes32(0)) {
             return pushStart(_state, _data);
         }
