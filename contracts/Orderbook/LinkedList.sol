@@ -27,7 +27,7 @@ library LinkedListLibrary {
     function getById(
         LinkedListState storage _state,
         bytes32 _id
-    ) public view returns (OrderData memory) {
+    ) public view returns (OrderData storage) {
         return _state.objects[_id].data;
     }
 
@@ -38,16 +38,34 @@ library LinkedListLibrary {
         return _state.objects[id].data.price != 0;
     }
 
-    function getHead(
+    function getHeadId(
         LinkedListState storage _state
     ) public view returns (bytes32) {
         return _state.head;
     }
 
-    function getTail(
+    function getTailId(
         LinkedListState storage _state
     ) public view returns (bytes32) {
         return _state.tail;
+    }
+
+    function getLength(
+        LinkedListState storage _state
+    ) public view returns (uint256) {
+        return _state.length;
+    }
+
+    function getHead(
+        LinkedListState storage _state
+    ) public view returns (OrderData storage) {
+        return getById(_state, _state.head);
+    }
+
+    function getTail(
+        LinkedListState storage _state
+    ) public view returns (OrderData storage) {
+        return getById(_state, _state.tail);
     }
 
     function getId(OrderData memory _data) public pure returns (bytes32) {

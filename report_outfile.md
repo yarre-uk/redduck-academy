@@ -153,6 +153,9 @@
 | **LinkedListLibrary** | Library |  |||
 | └ | getById | Public ❗️ |   |NO❗️ |
 | └ | isNotEmpty | Public ❗️ |   |NO❗️ |
+| └ | getHeadId | Public ❗️ |   |NO❗️ |
+| └ | getTailId | Public ❗️ |   |NO❗️ |
+| └ | getLength | Public ❗️ |   |NO❗️ |
 | └ | getHead | Public ❗️ |   |NO❗️ |
 | └ | getTail | Public ❗️ |   |NO❗️ |
 | └ | getId | Public ❗️ |   |NO❗️ |
@@ -172,7 +175,10 @@
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
 | └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
 | └ | manageTokensForTrade | External ❗️ | 🛑  | onlyOwner |
-| └ | createPassiveOrder | External ❗️ | 🛑  | validateOrder |
+| └ | createPassiveOrder | External ❗️ |  💵 | validateOrder |
+| └ | matchOrder | Public ❗️ | 🛑  |NO❗️ |
+| └ | _processBuyOrder | Internal 🔒 | 🛑  | |
+| └ | _processSellOrder | Internal 🔒 | 🛑  | |
 ||||||
 | **DepositStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |
