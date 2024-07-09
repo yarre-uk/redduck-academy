@@ -175,6 +175,9 @@
 | └ | supportsInterface | Public ❗️ |   |NO❗️ |
 | └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
 | └ | getOrder | External ❗️ |   |NO❗️ |
+| └ | manageTokensForTrade | External ❗️ | 🛑  | onlyOwner |
+| └ | deposit | External ❗️ |  💵 |NO❗️ |
+| └ | withdraw | External ❗️ | 🛑  |NO❗️ |
 | └ | createPassiveOrder | External ❗️ |  💵 | validateOrder |
 | └ | matchOrder | Public ❗️ | 🛑  |NO❗️ |
 | └ | _processBuyOrder | Internal 🔒 | 🛑  | |

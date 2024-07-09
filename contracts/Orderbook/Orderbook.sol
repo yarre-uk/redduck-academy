@@ -33,9 +33,9 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
         uint256 createdAt,
         OrderType orderType
     );
-    event OrderUpdated(bytes32 indexed id, uint256 amount, OrderType orderType);
-    event OrderProcessed(bytes32 indexed id, OrderType orderType);
-    event OrderDeleted(bytes32 indexed id, OrderType orderType);
+    event OrderUpdated(bytes32 indexed id, uint256 amount);
+    event OrderProcessed(bytes32 indexed id);
+    event OrderDeleted(bytes32 indexed id);
 
     constructor() Ownable(msg.sender) {}
 
@@ -95,37 +95,37 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
         return list.getById(_id);
     }
 
-    // function manageTokensForTrade(
-    //     uint256[] memory forRemoval,
-    //     uint256[] memory forAddition
-    // ) external onlyOwner {
-    //     if (forRemoval.length > 0) {
-    //         for (uint256 i = 0; i < forRemoval.length; i++) {
-    //             allowedTokensForTrade[forRemoval[i]] = false;
-    //         }
-    //     }
+    function manageTokensForTrade(
+        uint256[] memory forRemoval,
+        uint256[] memory forAddition
+    ) external onlyOwner {
+        if (forRemoval.length > 0) {
+            for (uint256 i = 0; i < forRemoval.length; i++) {
+                allowedTokensForTrade[forRemoval[i]] = false;
+            }
+        }
 
-    //     if (forAddition.length > 0) {
-    //         for (uint256 i = 0; i < forAddition.length; i++) {
-    //             allowedTokensForTrade[forAddition[i]] = true;
-    //         }
-    //     }
-    // }
+        if (forAddition.length > 0) {
+            for (uint256 i = 0; i < forAddition.length; i++) {
+                allowedTokensForTrade[forAddition[i]] = true;
+            }
+        }
+    }
 
-    // function deposit() external payable {
-    //     require(msg.value > 0, "Orderbook: Amount should be greater than 0");
-    //     balances[msg.sender] += msg.value;
-    // }
+    function deposit() external payable {
+        require(msg.value > 0, "Orderbook: Amount should be greater than 0");
+        balances[msg.sender] += msg.value;
+    }
 
-    // function withdraw(uint256 _amount) external {
-    //     require(
-    //         balances[msg.sender] >= _amount,
-    //         "Orderbook: Insufficient balance"
-    //     );
-    //     balances[msg.sender] -= _amount;
-    //     (bool success, ) = payable(msg.sender).call{ value: _amount }("");
-    //     require(success, "Orderbook: Transfer failed");
-    // }
+    function withdraw(uint256 _amount) external {
+        require(
+            balances[msg.sender] >= _amount,
+            "Orderbook: Insufficient balance"
+        );
+        balances[msg.sender] -= _amount;
+        (bool success, ) = payable(msg.sender).call{ value: _amount }("");
+        require(success, "Orderbook: Transfer failed");
+    }
 
     function createPassiveOrder(
         uint256 _tokenId,
@@ -219,7 +219,7 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
     function _processBuyOrder(
         uint256 _tokenId,
         bytes32 _buyOrderId,
-        OrderData storage buyOrder
+        OrderData storage _buyOrder
     ) internal {
         ListData storage lists = _orderbookLists.lists[_tokenId];
 
@@ -229,12 +229,13 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
         OrderData memory bestSellOrder = (sellList.objects[sellList.tail]).data;
 
         if (
-            sellList.tail != bytes32(0) && bestSellOrder.price <= buyOrder.price
+            sellList.tail != bytes32(0) &&
+            bestSellOrder.price <= _buyOrder.price
         ) {
-            uint256 amountToBuy = buyOrder.amount;
+            uint256 amountToBuy = _buyOrder.amount;
             uint256 amountToSell = bestSellOrder.amount;
 
-            uint256 payment = buyOrder.price * amountToBuy;
+            uint256 payment = _buyOrder.price * amountToBuy;
 
             if (amountToBuy == amountToSell) {
                 sellList.deleteNode(sellList.tail);
@@ -243,8 +244,8 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
                 balances[msg.sender] -= payment;
                 balances[bestSellOrder.owner] += payment;
 
-                emit OrderProcessed(_buyOrderId, OrderType.BUY);
-                emit OrderProcessed(sellList.tail, OrderType.SELL);
+                emit OrderProcessed(_buyOrderId);
+                emit OrderProcessed(sellList.tail);
             } else if (amountToBuy < amountToSell) {
                 buyList.deleteNode(_buyOrderId);
 
@@ -254,23 +255,19 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
 
                 sellList.objects[sellList.tail].data = bestSellOrder;
 
-                emit OrderProcessed(_buyOrderId, OrderType.BUY);
-                emit OrderUpdated(
-                    sellList.tail,
-                    bestSellOrder.amount,
-                    OrderType.SELL
-                );
+                emit OrderProcessed(_buyOrderId);
+                emit OrderUpdated(sellList.tail, bestSellOrder.amount);
             } else {
                 sellList.deleteNode(sellList.tail);
-                buyOrder.amount -= amountToSell;
+                _buyOrder.amount -= amountToSell;
 
-                balances[msg.sender] -= buyOrder.price * amountToSell;
-                balances[bestSellOrder.owner] += buyOrder.price * amountToSell;
+                balances[msg.sender] -= _buyOrder.price * amountToSell;
+                balances[bestSellOrder.owner] += _buyOrder.price * amountToSell;
 
-                buyList.objects[_buyOrderId].data = buyOrder;
+                buyList.objects[_buyOrderId].data = _buyOrder;
 
-                emit OrderProcessed(sellList.tail, OrderType.SELL);
-                emit OrderUpdated(_buyOrderId, buyOrder.amount, OrderType.BUY);
+                emit OrderProcessed(sellList.tail);
+                emit OrderUpdated(_buyOrderId, _buyOrder.amount);
             }
             ercContract.safeTransferFrom(
                 bestSellOrder.owner,
@@ -293,7 +290,7 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
     function _processSellOrder(
         uint256 _tokenId,
         bytes32 _sellOrderId,
-        OrderData storage sellOrder
+        OrderData storage _sellOrder
     ) internal {
         ListData storage lists = _orderbookLists.lists[_tokenId];
 
@@ -303,10 +300,10 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
         OrderData memory bestBuyOrder = (buyList.objects[buyList.tail]).data;
 
         if (
-            buyList.tail != bytes32(0) && bestBuyOrder.price >= sellOrder.price
+            buyList.tail != bytes32(0) && bestBuyOrder.price >= _sellOrder.price
         ) {
             uint256 amountToBuy = bestBuyOrder.amount;
-            uint256 amountToSell = sellOrder.amount;
+            uint256 amountToSell = _sellOrder.amount;
 
             uint256 payment = bestBuyOrder.price * amountToBuy;
 
@@ -317,23 +314,19 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
                 balances[msg.sender] += payment;
                 balances[bestBuyOrder.owner] -= payment;
 
-                emit OrderProcessed(_sellOrderId, OrderType.SELL);
-                emit OrderProcessed(buyList.tail, OrderType.BUY);
+                emit OrderProcessed(_sellOrderId);
+                emit OrderProcessed(buyList.tail);
             } else if (amountToBuy < amountToSell) {
                 buyList.deleteNode(buyList.tail);
 
-                sellOrder.amount -= amountToBuy;
+                _sellOrder.amount -= amountToBuy;
                 balances[msg.sender] += payment;
                 balances[bestBuyOrder.owner] -= payment;
 
-                sellList.objects[_sellOrderId].data = sellOrder;
+                sellList.objects[_sellOrderId].data = _sellOrder;
 
-                emit OrderProcessed(_sellOrderId, OrderType.SELL);
-                emit OrderUpdated(
-                    _sellOrderId,
-                    sellOrder.amount,
-                    OrderType.SELL
-                );
+                emit OrderProcessed(_sellOrderId);
+                emit OrderUpdated(_sellOrderId, _sellOrder.amount);
             } else {
                 sellList.deleteNode(_sellOrderId);
                 bestBuyOrder.amount -= amountToSell;
@@ -343,12 +336,8 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
 
                 buyList.objects[buyList.tail].data = bestBuyOrder;
 
-                emit OrderProcessed(buyList.tail, OrderType.BUY);
-                emit OrderUpdated(
-                    _sellOrderId,
-                    sellOrder.amount,
-                    OrderType.SELL
-                );
+                emit OrderProcessed(buyList.tail);
+                emit OrderUpdated(_sellOrderId, _sellOrder.amount);
             }
             ercContract.safeTransferFrom(
                 msg.sender,
