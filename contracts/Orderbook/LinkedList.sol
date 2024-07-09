@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import "hardhat/console.sol";
+
 struct OrderData {
     uint256 price; // 1:1
     uint256 amount;
@@ -36,18 +38,6 @@ library LinkedListLibrary {
         bytes32 id
     ) internal view returns (bool) {
         return _state.objects[id].data.price != 0;
-    }
-
-    function getHeadId(
-        LinkedListState storage _state
-    ) internal view returns (bytes32) {
-        return _state.head;
-    }
-
-    function getTailId(
-        LinkedListState storage _state
-    ) internal view returns (bytes32) {
-        return _state.tail;
     }
 
     function getLength(
@@ -193,5 +183,22 @@ library LinkedListLibrary {
         _state.tail = bytes32(0);
         delete _state.objects[bytes32(0)];
         _state.length = 0;
+    }
+
+    function traverse(LinkedListState storage _state) internal view {
+        bytes32 current = _state.head;
+        uint256 i = 0;
+        console.log("  -s-  ");
+        while (current != bytes32(0)) {
+            OrderData storage data = getById(_state, current);
+            console.logBytes32(current);
+            console.log("Amount -> ", data.amount);
+            console.log("Price -> ", data.price);
+            console.log("Owner -> ", data.owner);
+            console.log("Created At -> ", data.createdAt);
+            current = _state.objects[current].next;
+            i++;
+        }
+        console.log("  -e-  ");
     }
 }

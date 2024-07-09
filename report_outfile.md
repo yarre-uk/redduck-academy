@@ -153,8 +153,6 @@
 | **LinkedListLibrary** | Library |  |||
 | └ | getById | Internal 🔒 |   | |
 | └ | isNotEmpty | Internal 🔒 |   | |
-| └ | getHeadId | Internal 🔒 |   | |
-| └ | getTailId | Internal 🔒 |   | |
 | └ | getLength | Internal 🔒 |   | |
 | └ | getHead | Internal 🔒 |   | |
 | └ | getTail | Internal 🔒 |   | |
@@ -164,6 +162,7 @@
 | └ | insert | Internal 🔒 | 🛑  | |
 | └ | deleteNode | Internal 🔒 | 🛑  | |
 | └ | clear | Internal 🔒 | 🛑  | |
+| └ | traverse | Internal 🔒 |   | |
 ||||||
 | **MyERC1155** | Implementation | ERC1155, Ownable |||
 | └ | <Constructor> | Public ❗️ | 🛑  | ERC1155 Ownable |
@@ -171,17 +170,16 @@
 | └ | mint | Public ❗️ | 🛑  |NO❗️ |
 | └ | mintBatch | Public ❗️ | 🛑  | onlyOwner |
 ||||||
-| **Orderbook** | Implementation | Ownable, AccessControl, Initializable |||
+| **Orderbook** | Implementation | Ownable, AccessControl, Initializable, ERC1155Holder |||
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
+| └ | supportsInterface | Public ❗️ |   |NO❗️ |
 | └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
-| └ | manageTokensForTrade | External ❗️ | 🛑  | onlyOwner |
 | └ | getOrder | External ❗️ |   |NO❗️ |
-| └ | deposit | External ❗️ |  💵 |NO❗️ |
-| └ | withdraw | External ❗️ | 🛑  |NO❗️ |
 | └ | createPassiveOrder | External ❗️ |  💵 | validateOrder |
 | └ | matchOrder | Public ❗️ | 🛑  |NO❗️ |
 | └ | _processBuyOrder | Internal 🔒 | 🛑  | |
 | └ | _processSellOrder | Internal 🔒 | 🛑  | |
+| └ | traverseList | External ❗️ |   |NO❗️ |
 ||||||
 | **DepositStorage** | Library |  |||
 | └ | getId | Internal 🔒 |   | |
