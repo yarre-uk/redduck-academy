@@ -80,8 +80,8 @@ library LinkedListLibrary {
         Node memory newObject = Node(_state.tail, _data, bytes32(0));
 
         require(
-            _data.amount > getById(_state, _state.tail).amount,
-            "Amount must be greater than the previous node's amount"
+            _data.price > getById(_state, _state.tail).price,
+            "Price must be greater than the previous node's price"
         );
 
         if (_state.head == bytes32(0)) {
@@ -104,8 +104,8 @@ library LinkedListLibrary {
 
         require(
             _state.tail == bytes32(0) ||
-                _data.amount < getById(_state, _state.head).amount,
-            "Amount must be less than the head's amount"
+                _data.price < getById(_state, _state.head).price,
+            "Price must be less than the head's price"
         );
 
         if (_state.tail == bytes32(0)) {
@@ -133,12 +133,14 @@ library LinkedListLibrary {
         }
 
         require(
-            _data.amount > getById(_state, _prevId).amount,
-            "Amount must be greater than the previous node's amount"
+            _data.price > getById(_state, _prevId).price,
+            "Price must be greater than the previous node's price"
         );
         require(
-            _data.amount < getById(_state, _state.objects[_prevId].next).amount,
-            "Amount must be less than the next node's amount"
+            _state.objects[_prevId].next == bytes32(0) ||
+                _data.price <
+                getById(_state, _state.objects[_prevId].next).price,
+            "Price must be less than the next node's price"
         );
 
         id = getId(_data);

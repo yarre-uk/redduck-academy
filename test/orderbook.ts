@@ -164,5 +164,144 @@ describe("Orderbook", () => {
         (await orderbook.getOrder(TOKEN_ID, OrderType.SELL, id))[0],
       ).to.be.equal(price);
     });
+
+    it("Should create multiple different orders", async () => {
+      const {
+        contracts: { orderbook },
+        signers: {
+          orderbook: { user1Orderbook },
+          ecrContract: { user1EcrContract },
+        },
+      } = fixture;
+
+      const price = 1000n;
+      const amount = 100n;
+
+      await user1EcrContract.setApprovalForAll(
+        await orderbook.getAddress(),
+        true,
+      );
+
+      const id1 = await user1Orderbook.createPassiveOrder.staticCall(
+        TOKEN_ID,
+        price,
+        amount,
+        OrderType.SELL,
+        EMPTY_BYTES,
+      );
+
+      const id2 = await user1Orderbook.createPassiveOrder.staticCall(
+        TOKEN_ID,
+        price,
+        amount,
+        OrderType.BUY,
+        EMPTY_BYTES,
+        { value: price * amount },
+      );
+
+      await user1Orderbook.createPassiveOrder(
+        TOKEN_ID,
+        price,
+        amount,
+        OrderType.SELL,
+        EMPTY_BYTES,
+      );
+
+      await user1Orderbook.createPassiveOrder(
+        TOKEN_ID,
+        price,
+        amount,
+        OrderType.BUY,
+        EMPTY_BYTES,
+        { value: price * amount },
+      );
+
+      expect(
+        (await orderbook.getOrder(TOKEN_ID, OrderType.SELL, id1))[0],
+      ).to.be.equal(price);
+
+      expect(
+        (await orderbook.getOrder(TOKEN_ID, OrderType.BUY, id2))[0],
+      ).to.be.equal(price);
+    });
+
+    it("Should create multiple orders", async () => {
+      const {
+        contracts: { orderbook },
+        signers: {
+          orderbook: { user1Orderbook, user2Orderbook, user3Orderbook },
+          ecrContract: { user3EcrContract },
+        },
+      } = fixture;
+
+      const price1 = 1000n;
+      const price2 = 2000n;
+      const price3 = 1500n;
+      const amount = 100n;
+
+      await user3EcrContract.setApprovalForAll(
+        await orderbook.getAddress(),
+        true,
+      );
+
+      const id1 = await user1Orderbook.createPassiveOrder.staticCall(
+        TOKEN_ID,
+        price1,
+        amount,
+        OrderType.BUY,
+        EMPTY_BYTES,
+        { value: price1 * amount },
+      );
+      await user1Orderbook.createPassiveOrder(
+        TOKEN_ID,
+        price1,
+        amount,
+        OrderType.BUY,
+        EMPTY_BYTES,
+        { value: price1 * amount },
+      );
+
+      const id2 = await user2Orderbook.createPassiveOrder.staticCall(
+        TOKEN_ID,
+        price2,
+        amount,
+        OrderType.BUY,
+        id1,
+        { value: price2 * amount },
+      );
+      await user2Orderbook.createPassiveOrder(
+        TOKEN_ID,
+        price2,
+        amount,
+        OrderType.BUY,
+        id1,
+        { value: price2 * amount },
+      );
+
+      const id3 = await user3Orderbook.createPassiveOrder.staticCall(
+        TOKEN_ID,
+        price3,
+        amount,
+        OrderType.SELL,
+        id2,
+      );
+      await user3Orderbook.createPassiveOrder(
+        TOKEN_ID,
+        price3,
+        amount,
+        OrderType.SELL,
+        id2,
+      );
+
+      expect(
+        (await orderbook.getOrder(TOKEN_ID, OrderType.BUY, id1))[0],
+      ).to.be.equal(price1);
+      expect(
+        (await orderbook.getOrder(TOKEN_ID, OrderType.BUY, id2))[0],
+      ).to.be.equal(price2);
+      expect(
+        (await orderbook.getOrder(TOKEN_ID, OrderType.SELL, id3))[0],
+      ).to.be.equal(price3);
+    });
   });
 });
