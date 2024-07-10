@@ -21,6 +21,7 @@
 | contracts/Orderbook/LinkedList.sol | [object Promise] |
 | contracts/Orderbook/MyERC1155.sol | [object Promise] |
 | contracts/Orderbook/Orderbook.sol | [object Promise] |
+| contracts/Orderbook/OrderbookExtended.sol | [object Promise] |
 | contracts/Orderbook/OrderbookStorage.sol | [object Promise] |
 | contracts/Raffle/DepositStorage.sol | [object Promise] |
 | contracts/Raffle/Raffle.sol | [object Promise] |
@@ -168,20 +169,23 @@
 | └ | <Constructor> | Public ❗️ | 🛑  | ERC1155 Ownable |
 | └ | setURI | Public ❗️ | 🛑  | onlyOwner |
 | └ | mint | Public ❗️ | 🛑  |NO❗️ |
-| └ | mintBatch | Public ❗️ | 🛑  | onlyOwner |
+| └ | mintBatch | Public ❗️ | 🛑  |NO❗️ |
 ||||||
 | **Orderbook** | Implementation | Ownable, AccessControl, Initializable, ERC1155Holder |||
 | └ | <Constructor> | Public ❗️ | 🛑  | Ownable |
 | └ | supportsInterface | Public ❗️ |   |NO❗️ |
 | └ | initialize | Public ❗️ | 🛑  | initializer onlyOwner |
-| └ | getOrder | External ❗️ |   |NO❗️ |
-| └ | manageTokensForTrade | External ❗️ | 🛑  | onlyOwner |
-| └ | deposit | External ❗️ |  💵 |NO❗️ |
-| └ | withdraw | External ❗️ | 🛑  |NO❗️ |
 | └ | createPassiveOrder | External ❗️ |  💵 | validateOrder |
 | └ | matchOrder | Public ❗️ | 🛑  |NO❗️ |
 | └ | _processBuyOrder | Internal 🔒 | 🛑  | |
 | └ | _processSellOrder | Internal 🔒 | 🛑  | |
+| └ | cancelOrder | External ❗️ | 🛑  |NO❗️ |
+||||||
+| **OrderbookExtended** | Implementation | Orderbook |||
+| └ | getOrder | External ❗️ |   |NO❗️ |
+| └ | manageTokensForTrade | External ❗️ | 🛑  | onlyOwner |
+| └ | deposit | External ❗️ |  💵 |NO❗️ |
+| └ | withdraw | External ❗️ | 🛑  |NO❗️ |
 | └ | traverseList | External ❗️ |   |NO❗️ |
 ||||||
 | **DepositStorage** | Library |  |||

@@ -6,8 +6,8 @@ import { ethers } from "hardhat";
 import {
   type MyERC1155,
   MyERC1155__factory,
-  type Orderbook,
-  Orderbook__factory,
+  type OrderbookExtended,
+  OrderbookExtended__factory,
 } from "../typechain-types";
 
 enum OrderType {
@@ -21,7 +21,7 @@ const EMPTY_BYTES = "0x" + "0".repeat(64);
 describe("Orderbook", () => {
   type Contracts = {
     ecrContract: MyERC1155;
-    orderbook: Orderbook;
+    orderbook: OrderbookExtended;
   };
 
   type Users = Record<string, HardhatEthersSigner>;
@@ -34,7 +34,7 @@ describe("Orderbook", () => {
     const [owner, user1, user2, user3, user4] = await ethers.getSigners();
 
     const ecrContract = await new MyERC1155__factory(owner).deploy();
-    const orderbook = await new Orderbook__factory(owner).deploy();
+    const orderbook = await new OrderbookExtended__factory(owner).deploy();
 
     await Promise.all([
       ecrContract.mint(user1.address, 0n, ethers.parseEther("1"), EMPTY_BYTES),

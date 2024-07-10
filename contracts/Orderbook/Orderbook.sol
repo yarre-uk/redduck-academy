@@ -81,52 +81,6 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
         _;
     }
 
-    function getOrder(
-        uint256 _tokenId,
-        OrderType _orderType,
-        bytes32 _id
-    ) external view returns (OrderData memory) {
-        ListData storage lists = _orderbookLists.lists[_tokenId];
-
-        LinkedListState storage list = _orderType == OrderType.BUY
-            ? lists.buyLinkedList
-            : lists.sellLinkedList;
-
-        return list.getById(_id);
-    }
-
-    function manageTokensForTrade(
-        uint256[] memory forRemoval,
-        uint256[] memory forAddition
-    ) external onlyOwner {
-        if (forRemoval.length > 0) {
-            for (uint256 i = 0; i < forRemoval.length; i++) {
-                allowedTokensForTrade[forRemoval[i]] = false;
-            }
-        }
-
-        if (forAddition.length > 0) {
-            for (uint256 i = 0; i < forAddition.length; i++) {
-                allowedTokensForTrade[forAddition[i]] = true;
-            }
-        }
-    }
-
-    function deposit() external payable {
-        require(msg.value > 0, "Orderbook: Amount should be greater than 0");
-        balances[msg.sender] += msg.value;
-    }
-
-    function withdraw(uint256 _amount) external {
-        require(
-            balances[msg.sender] >= _amount,
-            "Orderbook: Insufficient balance"
-        );
-        balances[msg.sender] -= _amount;
-        (bool success, ) = payable(msg.sender).call{ value: _amount }("");
-        require(success, "Orderbook: Transfer failed");
-    }
-
     function createPassiveOrder(
         uint256 _tokenId,
         uint256 _price,
@@ -357,16 +311,31 @@ contract Orderbook is Ownable, AccessControl, Initializable, ERC1155Holder {
         }
     }
 
-    function traverseList(
+    function cancelOrder(
         uint256 _tokenId,
-        OrderType _orderType
-    ) external view {
+        OrderType _orderType,
+        bytes32 _id
+    ) external {
         ListData storage lists = _orderbookLists.lists[_tokenId];
 
         LinkedListState storage list = _orderType == OrderType.BUY
             ? lists.buyLinkedList
             : lists.sellLinkedList;
 
-        list.traverse();
+        OrderData memory order = list.getById(_id);
+
+        require(order.owner == msg.sender, "Orderbook: Not owner of order");
+
+        list.deleteNode(_id);
+
+        if (_orderType == OrderType.BUY) {
+            balances[msg.sender] -= order.price * order.amount;
+            (bool success, ) = payable(msg.sender).call{
+                value: order.price * order.amount
+            }("");
+            require(success, "Orderbook: Transfer failed");
+        }
+
+        emit OrderDeleted(_id);
     }
 }
